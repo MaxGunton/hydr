@@ -37,7 +37,7 @@ $ conda activate hydrophone
 Following step may require installation of portaudio if pyaudio fails to install.  
 ```bash
 # 6. Install this package
-$ pip install git+https://github.com/MaxGunton/hydrophone.git
+$ pip install git+https://github.com/MaxGunton/hydr.git
 ```
 
 ## Description
