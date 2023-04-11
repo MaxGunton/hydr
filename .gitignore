@@ -1,0 +1,7 @@
+dist
+hydrophone.egg-info
+hydrophone/models/blasts_224x224_6cat.pth
+*__pycache__
+.idea
+packages_hydrophone.png
+classes_hydrophone.png

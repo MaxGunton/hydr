@@ -1,0 +1,82 @@
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hydrophone"
+version = "0.0.1"
+description = "A set of scripts for preforming a hydrophone analysis."
+license = "Apache-2.0"
+readme = "README.md"
+
+repository = "https://github.com/MaxGunton/hydrophone"
+# homepage = "https://maxgunton.github.io/hydrophone/"
+# documentation = "https://maxgunton.github.io/hydrophone/"
+
+authors = [
+    "Max Gunton <maxgunton@hotmail.com>",
+]
+maintainers = [
+    "Max Gunton <maxgunton@hotmail.com>",
+]
+
+keywords = ["analysis", "hydrophone"]
+packages = [
+    {include = "hydrophone"},
+]
+
+[tool.poetry.dependencies]
+blinker = "1.5"
+matplotlib = "3.5.3"
+nnAudio = "0.3.1"
+numpy = "1.21.6"
+pandas = "1.3.5"
+Pillow = "9.3.0"
+PyAudio = "0.2.13"
+PySide6 = "6.4.2"
+python = ">=3.6,<3.11"
+scipy = "1.7.3"
+Shapely = "1.8.5.post1"
+simplekml = "1.3.6"
+soundfile = "0.11.0"
+torch = ">=1.13.0"
+torchaudio = ">=0.13.0"
+torchvision = ">=0.13.0"
+tqdm = "4.64.1"
+utm = "0.7.0"
+
+[tool.poetry.scripts]
+# CREATION
+hydr-new-project = "hydrophone.cli:new_project_cli"
+hydr-new-depfile = "hydrophone.cli:new_depfile_cli"
+
+# ADD DATA
+hydr-set-bounds = "hydrophone.cli:set_bounds_cli"
+hydr-set-coords = "hydrophone.mapping:add_hydrophone_coords_cli"
+
+# CLASSIFICATION
+hydr-classify-blasts = "hydrophone.cli:blast_224x224_6cat_cli"
+hydr-combine-csvs = "hydrophone.cli:combine_csvs_cli"
+hydr-fullpaths-csvs = "hydrophone.cli:file_column_fullpaths_cli"
+hydr-basenames-csvs = "hydrophone.cli:file_column_basenames_cli"
+
+# EXPORT SCRIPTS DATA
+hydr-export-summaries = "hydrophone.cli:export_summaries_cli"
+hydr-export-wavdetails = "hydrophone.cli:export_wav_details_cli"
+hydr-export-bounds = "hydrophone.cli:export_bounds_cli"
+hydr-export-classifications = "hydrophone.cli:export_classifications_cli"
+hydr-export-validations = "hydrophone.cli:export_validations_cli"
+
+# IMPORTING
+hydr-import-classifications = "hydrophone.cli:import_classifications_cli"
+
+# VALIDATION
+hydr-run-validator = "hydrophone.cli:validator_cli"
+
+# MAPPING
+
+# 
+hydr-export-map = "hydrophone.mapping:map_hydrophones_cli"
+# export-coverageplot = 
+
+# hydr-add-syncs
