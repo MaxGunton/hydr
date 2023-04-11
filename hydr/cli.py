@@ -22,7 +22,6 @@ import argparse
 import os
 import sys
 import datetime as dt
-from pathlib import Path
 
 # if running as script need to add the current directory to the path
 if __name__ == "__main__":
@@ -41,7 +40,6 @@ from hydr.classifications import (blasts_224x224_6cat, export_classifications,
                                   combine_csvs)
 from hydr.definitions import CONVENTIONS
 import hydr.validator.main as validator
-from hydr.models.blasts_224x224_6cat import Model
 
 # TODO: Create a method (in `utils.py` probably) that takes:
 #       `the value to write`, `dest`, `default_name` and deals with saving to disk
@@ -57,6 +55,7 @@ from hydr.models.blasts_224x224_6cat import Model
 #       define method in utils.py
 # TODO: Add method for getting directory contents into utils.py
 # TODO: Put the default cli parameter values into definitions.
+
 
 def initialize_args(argslist) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -230,26 +229,25 @@ def set_bounds_cli() -> None:
             print(f'\t{str(h.deployment_start).ljust(22)}'
                   f'{str(h.deployment_end).ljust(22)}')
             r = input(f"\nDo you want to overwrite existing bounds? Y/[N]: ")
-            if not answered_yes(r):
-                return
-            while True:
-                bounds = input(f'Enter bounds for `{h.sn}` (comma separated):\n\t')
-                start, end = bounds.split(',')
-                start, end = start.strip(' ').rstrip(' '), end.strip(' ').rstrip(' ')
-                try:
-                    start = (start
-                             if start == "*"
-                             else dt.datetime.strptime(start, "%Y-%m-%d %H:%M:%S"))
-                    end = (end
-                           if end == "*"
-                           else dt.datetime.strptime(end, "%Y-%m-%d %H:%M:%S"))
-                    # call the set_bounds method with the command-line arguments
-                    set_bounds(args.depfile, h.sn, start, end)
-                except ValueError:
-                    print(f'Unable to parse bounds:\n\t{start}, {end}\nEnsure they '
-                          f'follow the form specified above.  \n')
-                else:
-                    break
+            if answered_yes(r):
+                while True:
+                    bounds = input(f'Enter bounds for `{h.sn}` (comma separated):\n\t')
+                    start, end = bounds.split(',')
+                    start, end = start.strip(' ').rstrip(' '), end.strip(' ').rstrip(' ')
+                    try:
+                        start = (start
+                                 if start == "*"
+                                 else dt.datetime.strptime(start, "%Y-%m-%d %H:%M:%S"))
+                        end = (end
+                               if end == "*"
+                               else dt.datetime.strptime(end, "%Y-%m-%d %H:%M:%S"))
+                        # call the set_bounds method with the command-line arguments
+                        set_bounds(args.depfile, h.sn, start, end)
+                    except ValueError:
+                        print(f'Unable to parse bounds:\n\t{start}, {end}\nEnsure they '
+                              f'follow the form specified above.  \n')
+                    else:
+                        break
 
 
 def export_bounds_cli() -> None:
@@ -285,7 +283,6 @@ def import_classifications_cli():
 
     # call the scan method with the command-line arguments
     import_classifications(args.depfile, args.csvdir)
-
 
 
 # TODO: Consider adding model as argument, but it is something we need to discover so
@@ -342,6 +339,7 @@ def file_column_fullpaths_cli():
     # call the generate_summary method with the command-line arguments
     file_column_fullpaths(args.datadir, args.csvdir)
 
+
 def file_column_basenames_cli():
     # get command-line arguments
     args = initialize_args(['csvdir'])
@@ -372,60 +370,3 @@ def validator_cli():
     args = initialize_args(['depfile'])
     # call the generate_summary method with the command-line arguments
     validator.run(args.depfile)
-
-def main():
-    d_dir = 'W:/CSIRO/00_DEPLOYMENTS/PDSKP_Indonesia_20220831/00_hydrophone_data'
-    w_dir = "C:/Users/maxgu/Documents/testfolder/ABC_Canada_20000100/00_hydrophone_data"
-    csvdir = f'{w_dir}/import/'
-
-    depfile = f'{w_dir}/deployment.data'
-    bounds = [
-      ('5476', dt.datetime.strptime('2022-08-31 09:53:04', '%Y-%m-%d %H:%M:%S'), '*'),
-      ('5479', dt.datetime.strptime('2022-08-31 10:28:01', '%Y-%m-%d %H:%M:%S'), '*'),
-      ('5488', dt.datetime.strptime('2022-08-31 09:38:24', '%Y-%m-%d %H:%M:%S'), '*'),
-      ('671391780', dt.datetime.strptime('2022-06-05 11:21:32', '%Y-%m-%d %H:%M:%S'), '*'),
-      ('805351451', dt.datetime.strptime('2022-08-31 10:11:01', '%Y-%m-%d %H:%M:%S'), '*'),
-    ]
-
-    # 1) create depfile
-    new_depfile(d_dir, dest=w_dir)
-    # 2) set deployment bounds
-    for sn, s, e in bounds:
-        set_bounds(depfile, sn, s, e)
-    # 3) test export bounds
-    export_bounds(depfile, w_dir)
-    # 4) test export summaries
-    export_summaries(depfile, dest=w_dir)
-    # 5) test export wav details
-    export_wav_details(depfile, dest=w_dir)
-    # 6) import classifications
-    import_classifications(depfile, csvdir)
-    deployment = load_depfile(depfile)
-    # 7) force validations to computed and saved
-    _ = deployment.validations
-    save_depfile(deployment, depfile, False)
-
-
-# def main2():
-#     # f = ('W:/CSIRO/00_DEPLOYMENTS/PDSKP_Indonesia_20220831/00_hydrophone_data/'
-#     #      'deployment.data')
-#     f = ('C:/Users/maxgu/Documents/testfolder/ABC_Canada_20000100/00_hydrophone_data/'
-#          'deployment.data')
-#     deployment = load_depfile(f)
-#     df = deployment.validations
-#     # 1) Update the global_end column values
-#     df['global_end'] = df.apply(
-#         lambda r: r['global_start'] + dt.timedelta(seconds=r['end'] - r['start']),
-#         axis=1
-#     )  # adjust the values for global_end
-#
-#     # 2) Add the score column values
-#     df['score'] = df.apply(Model.compute_score, axis=1)
-#
-#     deployment.validations = df
-#     save_depfile(deployment, f)
-
-
-if __name__ == '__main__':
-    main()
-    # main2()

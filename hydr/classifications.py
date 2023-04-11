@@ -20,7 +20,6 @@ import os
 import sys
 from tqdm import tqdm
 import datetime as dt
-from typing import List
 
 # if running as script need to add the current directory to the path
 import numpy as np

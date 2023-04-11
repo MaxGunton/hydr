@@ -1,14 +1,4 @@
 #!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# Project:       CSIRO Hydrophone Project
-# Author:        Max Gunton
-# --------------------------------------------------------------------------------------
-# Description:   Defined values used/shared by modules within the hydrophone package
-# --------------------------------------------------------------------------------------
-
-# TODO: Add blasts_224x224_6cat definitions into a new file called definitions.py in
-#       models submodule
-# TODO: Add a config file that user can edit that this file and others load values from
 
 # python standard library
 import os
@@ -17,7 +7,7 @@ from matplotlib import cm as colormap
 
 SRC_PATH = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
 TQDM_WIDTH = 25
-CONVENTIONS = ['SoundTrap']  # TODO: Add additional conventions as they come-up
+CONVENTIONS = ['SoundTrap']
 
 ANALYSIS_DELAY = 600  # seconds (i.e. 10 minutes)
 GOLDEN_RATIO = (1 + 5 ** 0.5) / 2
@@ -48,17 +38,14 @@ BLOCKSIZE = 1024  # 2048  # this is for the wav player through pyaudio
 AUDIO_STEP = 0.9  # seconds that jump when step back or ahead is pressed
 
 BLAST_CLASSES = [
-    'animal noise',
+    'grunt',
     'background',
     'blast',
     'bump/scrap',
-    'grumble',
+    'rumble',
     'vessel',
-    'undetermined',
     'other'
 ]
-
-# TODO: Use better values
 DISPLAY_SPEC_PARAMS = dict(
     n_fft=4096,
     win_length=4096,
@@ -169,9 +156,7 @@ NEW_DEPLOYMENT_STRUCTURE = [
     {
         "00_hydrophone_data": [],
         "01_machine_learning": [
-            {"deepblast": [
-                ("README.md", TEMPLATES["db_readme.md"])
-            ]},
+            {"blast_224x224_6cat": []},
         ],
         "02_analysis": [
             {"multilateration": []}
@@ -183,8 +168,6 @@ NEW_DEPLOYMENT_STRUCTURE = [
                 ],
                 "source_data": []
             },
-            ("report_v0.ipynb", TEMPLATES["report.ipynb"]),
-            ("TODO.txt", TEMPLATES["report_todo.txt"]),
         ],
         "10_forms_photos_etc": [],
         "11_ais_data": [],

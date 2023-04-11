@@ -117,7 +117,6 @@ def new_project(name: str, dest: str = '.') -> None:
     :return:
     """
     # check that `name` if valid filename and that `dest` is an existing directory
-    # TODO: use mval for validation?
     name, dest = valid_filename(name), existing_directory(dest)
 
     # create new deployment directory hierarchy
@@ -155,7 +154,6 @@ def new_depfile(datadir: str, convention: str = 'SoundTrap',
     save_depfile(deployment, dest)
 
 
-# FIXME: USER_METHOD
 # TODO: Allow for multiple bounds (if hydrophone moved mid deployment for example)
 def set_bounds(depfile: str, sn: str, start: dt.datetime, end: dt.datetime):
     deployment = load_depfile(depfile)
@@ -165,7 +163,6 @@ def set_bounds(depfile: str, sn: str, start: dt.datetime, end: dt.datetime):
     print("Bounds saved ...")
 
 
-# FIXME: USER_METHOD
 def export_summaries(depfile: str, sns: str = None, dest: str = '.') -> None:
     """
     Given the input parameter `depfile`, `sns`, and `dest`.  This method generates
