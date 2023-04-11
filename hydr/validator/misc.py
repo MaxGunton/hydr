@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QMessageBox, QFrame
 if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR))
-
 # from this package
 from hydr.definitions import WARNING_ICON
 

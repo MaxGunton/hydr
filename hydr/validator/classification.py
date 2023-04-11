@@ -1,6 +1,5 @@
 import sys
 import os
-
 from PySide6.QtCore import Slot, Qt, QTimer
 from PySide6.QtGui import QMouseEvent, QFocusEvent, QFont
 from PySide6.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QFrame, QPushButton,
@@ -9,7 +8,6 @@ from PySide6.QtWidgets import (QHBoxLayout, QVBoxLayout, QLabel, QFrame, QPushBu
 if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR))
-
 # from this package
 from hydr.definitions import BLAST_CLASSES, STATUS_COLORS
 from hydr.validator.signals import Receiver
@@ -17,10 +15,6 @@ from hydr.types import Status, LoadMethod
 from hydr.validator.misc import missing_code_popup, QHLine, QVLine
 
 
-# TODO: Add a button to remove a bound (holding shift and clicking on or something) a
-#       bound will select it and then the button will become active and it
-#       can be removed.
-# TODO: Change occurrences of classification to label
 class ClassificationControls(QFrame, Receiver):
 
     def __init__(self, parent):
@@ -57,7 +51,6 @@ class ClassificationControls(QFrame, Receiver):
         btn_font = QFont()
         btn_font.setBold(True)
         btn_font.setPointSize(10)
-        # btn_font.set
         self.submit = QPushButton('Submit', self.left)
         self.submit.clicked.connect(self.submit_pressed)
         self.submit.setMaximumHeight(25)
@@ -115,12 +108,8 @@ class ClassificationControls(QFrame, Receiver):
         self.left.layout.addWidget(self.clear)
         self.left.layout.addStretch(1)
 
-
-
         # Middle
         self.middle = QFrame(self.label_details)
-        # self.middle.setLineWidth(1)
-        # self.middle.setFrameStyle(QFrame.Box | QFrame.Plain)
         self.middle.layout = QVBoxLayout(self.middle)
         self.middle.layout.setContentsMargins(0, 0, 0, 0)
         self.middle.layout.setSpacing(0)
@@ -138,8 +127,6 @@ class ClassificationControls(QFrame, Receiver):
         self.middle.layout.addStretch(1)
 
         self.right = QFrame(self.label_details)
-        # self.right.setLineWidth(1)
-        # self.right.setFrameStyle(QFrame.Box | QFrame.Plain)
         self.right.layout = QHBoxLayout(self.right)
         self.right.layout.setContentsMargins(0, 0, 0, 0)
         self.right.layout.setSpacing(0)
@@ -194,10 +181,10 @@ class ClassificationControls(QFrame, Receiver):
                 if code is not None:
                     if code.startswith('blast'):
                         w.class_btn['blast'].setChecked(True)
-                    elif code == 'grumble':
-                        w.class_btn['grumble'].setChecked(True)
-                    elif code == 'animal_noise':
-                        w.class_btn['animal noise'].setChecked(True)
+                    elif code == 'rumble':
+                        w.class_btn['rumble'].setChecked(True)
+                    elif code == 'grunt':
+                        w.class_btn['grunt'].setChecked(True)
                     elif code == 'bump/scrap':
                         w.class_btn['bump/scrap'].setChecked(True)
                     elif code == 'vessel':
@@ -213,13 +200,11 @@ class ClassificationControls(QFrame, Receiver):
                 w.setVisible(False)
                 self.separators[i].setVisible(False)
 
-
     @Slot()
     def submit_pressed(self):
         if not any([True for i in self.state.new_samples if i.code is None]):
             self.state.current_sample['val_status'] = Status.Submitted
             self.state.refresh(save=True)
-            # QTimer.singleShot(50, self.state.next_index)
             QTimer.singleShot(50, self.state.update_index)
         else:
             missing_code_popup()
@@ -228,16 +213,13 @@ class ClassificationControls(QFrame, Receiver):
     def revisit_pressed(self):
         self.state.current_sample['val_status'] = Status.Revisit
         self.state.refresh(save=True)
-        # QTimer.singleShot(50, self.state.next_index)
         QTimer.singleShot(50, self.state.update_index)
-
 
     @Slot()
     def skip_pressed(self):
         self.state.new_samples = None
         self.state.current_sample['val_status'] = Status.Skipped
         self.state.refresh(save=True)
-        # QTimer.singleShot(50, self.state.next_index)
         QTimer.singleShot(50, self.state.update_index)
 
     @Slot()
@@ -263,7 +245,6 @@ class ClassificationControls(QFrame, Receiver):
         self.autoset.setDisabled(disable)
 
 
-# TODO: See if Classification can detect it's index on it's own
 class Classification(QFrame, Receiver):
 
     def __init__(self, index: int, parent=None):
@@ -275,9 +256,6 @@ class Classification(QFrame, Receiver):
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
-        # self.setLineWidth(1)
-        # self.setFrameStyle(QFrame.Box | QFrame.Plain)
-        # print(f'index: {self.index}')
         self.class_btn = {c: QRadioButton(self) for c in BLAST_CLASSES}
         self.class_btn_group = QButtonGroup(self)
         self.layout.addWidget(QHLine(self))
@@ -333,10 +311,6 @@ class Classification(QFrame, Receiver):
 
     @Slot()
     def sync_code_with_state(self, button, checked):
-        # if (
-        #         self.index < len(self.state.new_samples) and
-        #         self.sample_index == self.state.index
-        # ):
         if self.index < len(self.state.new_samples):
             if checked:
                 for k, v in self.class_btn.items():

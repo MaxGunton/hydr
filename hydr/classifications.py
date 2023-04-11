@@ -1,30 +1,11 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# Project:       CSIRO Hydrophone Project
-# Author:        Max Gunton
-# --------------------------------------------------------------------------------------
-# Description:   Contains the `combine_csvs` method intended for use to combine multiple
-#                csv files with the same structure into a single file.  Furthermore, the
-#                method `combine_csvs_cli` is a wrapper to `combine_csvs` method which
-#                adds command line parsing, and it is defined in the `pyproject.toml`
-#                file as a project script with the name `combine-csvs`.  Therefore, when
-#                the hydrophone package is installed `combine_csvs` method can be run
-#                from the command line as follows:
-#
-#                ```bash
-#                $ combine_csvs [-h] [-d DEST] datadir
-#                ```
-# --------------------------------------------------------------------------------------
-
 import os
 import sys
 from tqdm import tqdm
 import datetime as dt
-
-# if running as script need to add the current directory to the path
 import numpy as np
 import pandas as pd
 
+# if running as script need to add the current directory to the path
 if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -33,22 +14,14 @@ if __name__ == "__main__":
 import hydr.soundtrap as soundtrap
 from hydr.models.blasts_224x224_6cat import ModelRunner, Model
 from hydr.utils import (load_depfile, save_depfile, unique_items, ok_to_write,
-                              str_to_dt)
+                        str_to_dt)
 from hydr.types import Status
 
 
-# TODO: Finish Docstrings
-# TODO: If we want to scan a single file or a wav directory then we should write
-#       another method to do this
 def blasts_224x224_6cat(depfile: str, device: str = "cpu",
                         batch_size: int = 150) -> None:
     """
     Initializes the model runner and
-    :param wavpath:
-    :param device:
-    :param batch_size:
-    :param dest:
-    :return:
     """
     deployment = load_depfile(depfile)
     already_scanned = (
@@ -71,7 +44,7 @@ def blasts_224x224_6cat(depfile: str, device: str = "cpu",
             print(f"\n{f} -- ({i+1} of {len(wavs)})")
             df = model_runner.scan(f)
             if not df.empty and df.loc[df['background_confidence'] < 0.5, :].empty:
-                # If df isn't initally empty, but is after we remove the high
+                # If df isn't initially empty, but is after we remove the high
                 # confidence background then we should keep the minimum background
                 # confidences so system knows it scanned that file.  If it is already
                 # empty then it was too short to scan and will be skipped everytime
@@ -107,17 +80,6 @@ def blasts_224x224_6cat(depfile: str, device: str = "cpu",
             print('Save completed.')
 
 
-# TODO: May want to be able to specify which sn too
-# TODO: Will need to implement additional logic to parse the validation dataframe
-#       dropping bits we don't need and expanding samples with multiple validations
-# TODO: Add flags to:
-#         - use file basename as file
-#         - to only export
-#               ~ validated samples
-#               ~ skipped samples
-#               ~ ml classifications
-# TODO: Expand the validation columns when multiple and drop unwanted columns
-# TODO: Put columns in a particular order
 def export_classifications(depfile: str, model: str, dest='.') -> None:
     print(f"\nExporting classifications from model `{model}` ...")
     deployment = load_depfile(depfile)
@@ -127,47 +89,6 @@ def export_classifications(depfile: str, model: str, dest='.') -> None:
         outfile = f'{dest}/{sn}_{model}.csv'
         if ok_to_write(outfile):
             df_w.to_csv(outfile, index=False)
-
-
-# TODO: Turn this into a real script (i.e. remove the hardcoded values)
-# TODO: Add `mapping` parameter as way to map old column names to new ones no matter
-#       what they were
-# TODO: Add model as an argument
-# TODO: Have this method append the full path by taking the 00_hydrophone directory as
-#       an input
-def import_classifications(depfile: str, csvdir: str):
-    deployment = load_depfile(depfile)
-    csvs = [os.path.join(csvdir, f) for f in os.listdir(csvdir) if f.endswith('.csv')]
-    for f in csvs:
-        df = pd.read_csv(f)
-        df = df.rename(
-            columns={
-                'serial_number': 'sn',
-                'background_probability': 'background_confidence',
-                'blast-1_probability': 'blast-1_confidence',
-                'blast-2_probability': 'blast-2_confidence',
-                'blast-3_probability': 'blast-3_confidence',
-                'blast-4_probability': 'blast-4_confidence',
-                'undetermined_probability': 'undetermined_confidence',
-            }
-        )
-        if not df.empty and df.loc[df['background_confidence'] < 0.5, :].empty:
-            df = df.loc[
-                 df['background_confidence'] == df['background_confidence'].min(),
-                 :
-                 ]
-        else:
-            df = df.loc[df['background_confidence'] < 0.5, :]  # reduce the set
-        df = df.drop(columns=['flagged', 'comment'])
-        df['model'] = 'blasts_224x224_6cat'
-        df['score'] = df.apply(Model.compute_score, axis=1)
-        df = df.astype({'sn': str})  # cast `sn` as string
-        df['global_start'] = df['global_start'].apply(str_to_dt)
-        df['global_end'] = df['global_end'].apply(str_to_dt)
-        df['val_samples'] = None
-        df['val_status'] = Status.MachineLabelled
-        deployment.append_classifications(df)
-    save_depfile(deployment, depfile, False)
 
 
 def export_validations(depfile: str, model: str, dest: str = '.') -> None:
@@ -302,17 +223,3 @@ def combine_csvs(csvdir: str, dest: str = None) -> None:
     # write combined dataframe to dest
     if ok_to_write(dest):
         df.to_csv(dest, index=False)
-
-
-def main():
-    pass
-    # d = "W:/CSIRO/00_DEPLOYMENTS/PDSKP_Indonesia_20220831/00_hydrophone_data/5476"
-    # f = ("W:/CSIRO/00_DEPLOYMENTS/PDSKP_Indonesia_20220831/00_hydrophone_data/5476/"
-    #     "5476.220831095230.wav")
-    # blasts_224x224_6cat(f, device="cuda:0", batch_size=600)
-    # import_classifications('C:/Users/maxgu/Documents/testfolder/ABC_Canada_20220101/00_hydrophone_data/deployment.data')
-    # import_classifications()
-
-
-if __name__ == "__main__":
-    main()

@@ -28,11 +28,12 @@ At some stage you will likely need to initialize the shell you are using to reco
 anaconda commands (anaconda will provide the instructions to do so)
 ```bash
 # 4. Create a new virtual environment
-$ conda create -n hydrophone python=3.7.13
+$ conda create -n hydr python=3.7.13
 ```
 ```bash
-# 5. Activate the newly created virtual environment
-$ conda activate hydrophone
+# 5. Activate the newly created virtual environment (NOTE: This environment must be 
+#    enabled to use the scripts)
+$ conda activate hydr
 ```
 Following step may require installation of portaudio if pyaudio fails to install.  
 ```bash
@@ -40,99 +41,250 @@ Following step may require installation of portaudio if pyaudio fails to install
 $ pip install git+https://github.com/MaxGunton/hydr.git
 ```
 
-## Description
-This package contains scripts used to analyze hydrophone deployments, this includes (but may not be limited to) the 
-following functionalities:
-
-1. create new project directory structure
-
-Then manually add the serial numbers of the hydrophones to the `00_hydrophone_data` directory
-   
-2. generate a summary of the data captured by each hydrophone
-
-2b. Then you may need to rename the files if they are using the hardware serial number instead of the SoundTrap serial number
-    This sometimes happens and should be corrected *could write a script for this*, it would also need to update the name of the config file and summary.  
-    (Actually it wouldnt if we place these into the directories).  Don't implement this yet**
-
-3. Move the files that occur outside the deployment bounds into a subdirectory called `ignore`
-   Should write a script to record the bounds and store them.  Use the existing directories in hydrophone_data as 
-TODO: Should store all the data in a single file possibly a config file for easy parsing and then have a export method that pulls the data we want from the report
-      Therefore various modules will read it in add their bit and then write it back and update the summary accordingly.  
-
-4. set hydrophone coordinates
-   
-
-5. set event times (i.e. bounds and sync events) 
-   
-
-6. generate a map (kml file) that can be uploaded on google maps showing:
-    - hydrophones positions - *DONE*
-    - distance between hydrophones - *DONE*    
-    - area of interest - *DONE*
-      - compute area - *TODO*
-    - hydrophone bounds (i.e. deployment/retreival) - *TODO*
-    - triangulated blasts - *TODO*
-    - heatmap of activity- *TODO*
-    - show the events over time in animation - *TODO*
-
-7. launch ML to scan the audio
-
-7. clean detections by (any subset of the following):
-   - combining all individual detection files into a single file - *DONE*
-   - drop entries that occur outside of bounds - *DONE*
-   - removing background detections with >50% confidence - *DONE*
-   - combining detections with same code that occur adjacent in time - *DONE*
-   - using the confidence values compute score for each detection - *DONE*
-   - sort detections with most likely blasts first - *DONE* (May want to delay this and use additional information 
-     derived from the following steps)
-   
-7. measures detection characteristics - *TODO*
-   - assign likely blast peak using peak pick - *TODO*
-   - signal-to-noise ratio - *TODO*
-   - peak frequency - *TODO*
-   - peak value at frequency commonly associated to blasts - *TODO*
-   - ...
-   
-8. using a combination of score and measured characteristics sort the detections in order of most likely True positives
-   first
-   
-9. launch validation window
-
-10. combine overlapping
-
-11. resolve any multicodes
-
-12. create blast statistic plots
-
-13. run multilateration script
-   
-  
 ---
 
-### 1. Create New Project Directory
-Create a project directory structure for a new hydrophone deployment.  The `name` parameter becomes the name of the 
-directory and the `dest` parameter is the directory in where it will be written (defaults to '.').     
-```bash
-$ new-deployment [-h] [--d DEST] name
-```
-
----
-
-### 2. Generate Hydrophone Summary
+## CLI Commands
 > **Warning**
 > 
-> This script expects that hydrophones used are "Ocean Instrument SoundTraps" and that the directory structure and 
+> Many scripts expect that hydrophones used are "Ocean Instrument SoundTraps" and that the directory structure and 
 > naming convention for them is `.../<SN>/<SN>.yymmddHHMMSS.<extension>`.  It also assumes that audio files are in 
 > `wav` format and that their corresponding log files share the same basename except with the extension `log.xml`. Any 
 > deviation from these assumptions may cause inaccurate summaries or script failure.
 
-Generate a summary for a hydrophone.  This includes the files generated, configuration details such as gain and sample 
-rate, and calibration data pull from the SoundTrap website.  The `datadir` parameter is the directory containing data 
-for a single hydrophone and `dest` parameter is the directory where the summary will be written to (defaults to '.').  
+---
+### GENERAL
+#### 1. Create Project Directory
+Create a project directory structure for a new hydrophone deployment.  The `name` parameter becomes the name of the 
+directory and the `dest` parameter is the directory in where it will be written (defaults to '.').     
 ```bash
-$ hydrophone-summary [-h] [--d DEST] datadir
+usage: hydr-new-project [-h] [-d DEST] name
+
+positional arguments:
+  name                  root name of project directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEST, --dest DEST  directory to save results
+
+example:
+  $ hydr-new-project ABC_Canada_20101010
 ```
 
 ---
+#### 2. Create `'deployment.data'` file
+This is the central file that will be used throughout the analysis.    
+```bash
+usage: hydr-new-depfile [-h] [-d DEST] [-c {SoundTrap}] datadir
 
-### 3. Set Hydrophone Coordinates
+positional arguments:
+  datadir               directory containing all hydrophone data (ex.
+                        00_hydrophone_data)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEST, --dest DEST  file/directory to save results
+  -c {SoundTrap}, --convention {SoundTrap}
+                        hydrophone convention used on of: (`SoundTrap`)
+
+example:
+  $ hydr-new-depfile ./00_hydrophone_data
+```
+
+---
+#### 3. Set Deployment Bounds (i.e. starts/ends)
+Set the starts/ends for each hydrophone; these are used throughout the analysis so only relevant audio is used.  
+```bash
+usage: hydr-set-bounds [-h] depfile
+
+positional arguments:
+  depfile     deployment data file
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+example:
+  $ hydr-set-bounds deployment.data
+```
+
+---
+#### 4. Scan Audio for Blasts
+Send the audio through the ML model to detect any blasts. 
+```bash
+usage: hydr-classify-blasts [-h] [-D DEVICE] [-b BATCH_SIZE] depfile
+
+positional arguments:
+  depfile               deployment data file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -D DEVICE, --device DEVICE
+                        ex. 'cpu', 'cuda:0', ...
+  -b BATCH_SIZE, --batch_size BATCH_SIZE
+                        number of samples in batch
+example:
+  $ hydr-classify-blasts deployment.data
+```
+
+---
+#### 5. Validate Blast Detections
+Run the validator GUI to visually and audibly check blast detections.  This GUI automatically saves changes to the deployment.data file and the validations can later be exported using the `hydr-export-validations` command.
+```bash
+usage: hydr-run-validator [-h] depfile
+
+positional arguments:
+  depfile     deployment data file
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+example:
+  $ hydr-run-validator deployment.data
+```
+
+---
+### EXPORTING
+#### 1. Export Hydrophone Summaries
+This includes gaps in audio, start/end times, latitude/longitude, calibration info, etc. and takes the form of a txt file.  
+
+```bash
+usage: hydr-export-summaries [-h] [-s SNS] [-d DEST] depfile
+
+positional arguments:
+  depfile               deployment data file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SNS, --sns SNS     serial numbers of hydrophones comma separated
+  -d DEST, --dest DEST  directory to save results
+  
+example:
+  $ hydr-export-summaries deployment.data
+```
+
+---
+#### 2. Export Wavfile Details
+This includes the durations, sample-rates, time to next file, etc. and takes the form of a csv.
+
+```bash
+usage: hydr-export-wavdetails [-h] [-s SNS] [-d DEST] depfile
+
+positional arguments:
+  depfile               deployment data file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SNS, --sns SNS     serial numbers of hydrophones comma separated
+  -d DEST, --dest DEST  directory to save results
+
+example:
+  $ hydr-export-wavdetails deployment.data
+```
+
+#### 3. Export Bounds
+This includes both the audio and deployment start/end bounds, and takes the form of a csv.  
+
+```bash
+usage: hydr-export-bounds [-h] [-d DEST] depfile
+
+positional arguments:
+  depfile               deployment data file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEST, --dest DEST  file/directory to save results
+  
+example:
+  $ hydr-export-bounds deployment.data
+```
+
+---
+#### 4. Export ML Blast Classifications
+This creates a csv containing the blast indexes for each hydrophone.  
+```bash
+usage: hydr-export-classifications [-h] [-d DEST] depfile
+
+positional arguments:
+  depfile               deployment data file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEST, --dest DEST  directory to save results
+
+example:
+  $ hydr-export-classifications deployment.data
+```
+
+---
+#### 5. Export Manual Validations
+Use the `hydr-run-validator` command to validate, the results from which are automatically saved to the deployment.data file and exported using the following command.     
+
+```bash
+usage: hydr-export-validations [-h] [-d DEST] depfile
+
+positional arguments:
+  depfile               deployment data file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEST, --dest DEST  directory to save results
+  
+example:
+  $ hydr-export-validations deployment.data
+```
+
+---
+### UTILITY
+#### 1. Combine Multiple CSV Files
+This is a convience function to combine multiple csv files.  
+```bash
+usage: hydr-combine-csvs [-h] [-d DEST] csvdir
+
+positional arguments:
+  csvdir                directory containing csv files
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d DEST, --dest DEST  file/directory to save results
+  
+example:
+  $ hydr-combine-csvs ./805351451
+```
+
+---
+#### 2. Full Path in CSV
+Convert the values in `file` column of csv from a base filename to an absolute path.  
+```bash
+usage: hydr-fullpaths-csvs [-h] datadir csvdir
+
+positional arguments:
+  datadir     directory containing all hydrophone data (ex.
+              00_hydrophone_data)
+  csvdir      directory containing csv files
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+example:
+  $ hydr-fullpaths-csvs ./00_hydrophone_data ./805351451
+```
+
+---
+#### 2. Basename in CSV
+Convert the values in `file` column of csv from an absolute path to just the base filename.  
+
+```bash
+usage: hydr-basenames-csvs [-h] csvdir
+
+positional arguments:
+  csvdir      directory containing csv files
+
+optional arguments:
+  -h, --help  show this help message and exit
+  
+example:
+  $ hydr-basenames-csvs ./805351451
+```
+
+## Validator
+
+![Validator](validator_gui_diagram.png)

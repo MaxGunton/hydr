@@ -1,11 +1,9 @@
 import os
 import sys
-
 import torch
 import numpy as np
 import pandas as pd
 import torch.nn as nn
-
 from typing import List, Tuple
 from PIL import Image
 from soundfile import SoundFile, SEEK_END
@@ -25,15 +23,6 @@ from hydr.definitions import (BLASTS_224x224_6CAT_WEIGHTS,
                               BLASTS_224x224_6CAT_CLASSES,
                               BLASTS_224x224_6CAT_OUTPUT_COLUMNS,
                               TQDM_WIDTH)
-
-# TODO: Complete docstrings
-# TODO: Add comments
-# TODO: Remove timestamp from classifier output b/c it shouldn't change from run to run
-#       therefore indicating the model used should be enough
-
-# ENHANCEMENTS
-# TODO: Figure out how to preform operations transforming audio model input batch-wise
-#       as opposed to sample wise in order to make algorithm faster
 
 
 def amplitude_to_db(spectrogram: np.ndarray) -> np.ndarray:
@@ -59,7 +48,6 @@ def amplitude_to_db(spectrogram: np.ndarray) -> np.ndarray:
     return s
 
 
-# TODO: Consider adding score computation here
 class Model(nn.Module):
     """
     This class defines the convolutional neural network that is blasts_224x224_6cat.
@@ -132,7 +120,6 @@ class Model(nn.Module):
                 probabilities = softmax(outputs.data)
                 probs.append(probabilities.cpu().numpy())
 
-        # TODO: Clean up the code below to use iterator and no hardcoded values such 6
         probs = np.squeeze(np.vstack(probs))
 
         # if there is only one in the batch need to put it in a list
@@ -305,7 +292,6 @@ class ModelRunner:
             spec_batch.append(s)
         return spec_batch
 
-    # TODO: Compute score column
     def classify_spec_batch(self, wavobj: SoundFile, spec_batch: List[Image.Image],
                             batch_number: int, final: bool) -> pd.DataFrame:
         frms = wavobj.frames
@@ -317,7 +303,6 @@ class ModelRunner:
 
         df = self.model.classify(spec_batch, self.device)
 
-        # TODO: Below formatting may belong in separate method
         df["file"] = filename
 
         df["start"] = (df["index"] + batch_number * bs) * (stp_f / sr)
@@ -388,16 +373,3 @@ class ModelRunner:
             else pd.DataFrame(columns=BLASTS_224x224_6CAT_OUTPUT_COLUMNS)
         )
         return df
-
-
-def main():
-    pass
-    # f = ('W:/CSIRO/00_DEPLOYMENTS/PDSKP_Indonesia_20220831/00_hydrophone_data/5476/'
-    #         '5476.220831095230.wav')
-    # d = 'W:/CSIRO/00_DEPLOYMENTS/PDSKP_Indonesia_20220831/00_hydrophone_data/5476'
-    # model_runner = ModelRunner(wavpath=f, device='cuda:0', batch_size=150, dest='.')
-    # model_runner.scan_all_wavs()
-
-
-if __name__ == '__main__':
-    main()

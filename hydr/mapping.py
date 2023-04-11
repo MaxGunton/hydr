@@ -9,16 +9,11 @@ from scipy.spatial import ConvexHull
 import utm
 from shapely.geometry import Point, LineString
 from matplotlib.cm import gist_rainbow
-# import matplotlib as mpl
 
 
 MEAN_EARTH_RADIUS = 6371000  # meters
 CENTRAL_MERIDIAN_SCALE_FACTOR = 0.9996
 
-# TODO: For All scripts issue a warning if they are going to overwrite an existing file
-# TODO: Complete the docstrings
-# TODO: Have add_hydrophone_coords save them into individual files for each hydrophone
-#       and save them to <sn>_bounds.csv
 
 def get_midpoint(pt1, pt2) -> tuple:
     p1 = Point(pt1[0], pt1[1])
@@ -106,7 +101,6 @@ def draw_hull_perimeter(df, hull_indexes, kml):
         ls.style = hull_style
 
 
-# TODO: Compute area and add to description
 def draw_hull_area(df, hull_indexes, kml):
     hull_indexes = hull_indexes.tolist()
     if len(hull_indexes) <= 1:
@@ -145,7 +139,6 @@ def mpl_to_kml_color(color):
     return ''.join(color)
 
 
-# TODO: Warn about overwrites
 def map_hydrophones(coord_file, dest):
     df = pd.read_csv(coord_file, dtype={'Serial Number': object})
     df = df.rename(columns={'Latitude': 'lat', 'Longitude': 'lon', 'Serial Number': 'sn',
@@ -214,8 +207,6 @@ def compute_full_coord(row):
     return pd.Series((latitude, lat_dm, lat_dms, longitude, lon_dm, lon_dms))
 
 
-# TODO: Figure out how to deal with multiple coords if it was moved (would have to be
-#       associated to time range)
 def add_hydrophone_coords(dest):
     print("- When entering coordinates you can leave any sections blank and this will assume 0 for that component.  "
           "You can enter the entire coordinate under `Degrees` (or any for that matter) it will automatically split it "
@@ -279,7 +270,6 @@ def add_hydrophone_coords(dest):
 
     df = pd.DataFrame({'Serial Number': sns, 'lat_deg': lat_degs, 'lat_min': lat_mins, 'lat_sec': lat_secs,
                        'lon_deg': lon_degs, 'lon_min': lon_mins, 'lon_sec': lon_secs, 'south': souths, 'west': wests})
-    # df[['latitude', 'lad', 'lam', 'las', 'longitude', 'lod', 'lom', 'los']] = df.apply(compute_full_coord, axis=1)
 
     columns = ['Latitude', 'Latitude (D\u00b0M.M\u02b9)', 'Latitude (D\u00b0M\u02b9S.S")',
                'Longitude', 'Longitude (D\u00b0M.M\u02b9)', 'Longitude (D\u00b0M\u02b9S.S")']
@@ -298,7 +288,6 @@ def add_hydrophone_coords_cli():
     add_hydrophone_coords(args.dest)
 
 
-# TODO: change name to map_deployment
 def map_hydrophones_cli():
     # get command-line arguments
     parser = argparse.ArgumentParser()
@@ -308,8 +297,3 @@ def map_hydrophones_cli():
 
     # call the create_project_directory with the arguments passed
     map_hydrophones(args.coord, args.dest)
-
-
-if __name__ == '__main__':
-    # add_hydrophone_coords('.')
-    map_hydrophones('./hydrophone_coordinates.csv', '.')

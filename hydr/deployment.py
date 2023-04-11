@@ -1,22 +1,3 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# Project:       CSIRO Hydrophone Project
-# Author:        Max Gunton
-# --------------------------------------------------------------------------------------
-# Description:   Contains the `generate_summary` method to create a summary of an
-#                individual hydrophone's data files, configuration settings and
-#                calibration history.  Furthermore, the method `generate_summary_cli` is
-#                a wrapper to `generate_summary` method which adds command line parsing,
-#                and it is defined in the `pyproject.toml` file as a project script with
-#                the name `hydrophone-summary`.  Therefore, when the hydrophone package
-#                is installed `generate_summary` method can be run from the command line
-#                as follows:
-#
-#                ```bash
-#                $ hydrophone-summary [-h] [-d DEST] datadir
-#                ```
-# --------------------------------------------------------------------------------------
-
 # python standard library
 import shutil
 import os
@@ -47,15 +28,6 @@ from hydr.types import Deployment, Hydrophone
 import hydr.formatting as formatting
 
 tqdm.pandas()  # initialize tqdm to display progress by using df.progress_apply
-
-# TODO: Finish docstrings
-# TODO: Script to export `audio coverage plot`
-# TODO: Script to export `audio summary`
-# TODO: Have summary reports reflect the deployment start and end times
-#       - If deployment_end == audio_end (battery died while deployed)
-#       - if deployment_start == audio_start (missing beginning of deployment)
-# TODO: Figure out a nice flow between the summary string values and usable values for
-#       the attributes used in Hydrophone class
 
 
 def _recursive_writer(structure: list, parent: str) -> None:
@@ -103,7 +75,6 @@ def _recursive_writer(structure: list, parent: str) -> None:
                 _recursive_writer(item[key], os.path.join(parent, key))
 
 
-# FIXME: USER_METHOD
 def new_project(name: str, dest: str = '.') -> None:
     """
     This method creates a new project directory defined by
@@ -125,7 +96,6 @@ def new_project(name: str, dest: str = '.') -> None:
           f"`{os.path.abspath(os.path.join(dest,name))}`\n")
 
 
-# FIXME: USER_METHOD
 def new_depfile(datadir: str, convention: str = 'SoundTrap',
                 dest: str = '.') -> None:
     files = [
@@ -154,7 +124,6 @@ def new_depfile(datadir: str, convention: str = 'SoundTrap',
     save_depfile(deployment, dest)
 
 
-# TODO: Allow for multiple bounds (if hydrophone moved mid deployment for example)
 def set_bounds(depfile: str, sn: str, start: dt.datetime, end: dt.datetime):
     deployment = load_depfile(depfile)
     h = deployment.hydrophones[sn]
@@ -216,7 +185,6 @@ def export_summaries(depfile: str, sns: str = None, dest: str = '.') -> None:
     save_depfile(deployment, depfile, check_overwrite=False)
 
 
-# FIXME: USER_METHOD
 def export_wav_details(depfile: str, sns: str = None, dest: str = '.') -> None:
     """
     Given the input parameter `depfile`, `sns`, and `dest` this method creates
@@ -273,11 +241,3 @@ def export_bounds(depfile: str, dest: str = '.'):
                            'deployment_end': d_ends})
     if ok_to_write(dest):
         bounds.to_csv(dest, index=False)
-
-
-def main():
-    pass
-
-
-if __name__ == '__main__':
-    main()

@@ -17,7 +17,6 @@ from hydr.validator.misc import QHLine
 from hydr.definitions import BLASTS_224x224_6CAT_CLASSES
 
 
-# TODO: Add option to use deployment start and end as dt range bounds and
 class Filters(QFrame, Receiver):
 
     def __init__(self, parent):
@@ -98,7 +97,6 @@ class Filters(QFrame, Receiver):
         self.sample_length.layout.addWidget(QLabel('seconds'))
 
         # Codes Filter
-        # TODO: Could use unique_values(self.state.df_all['code'])
         self.all_codes = ['Any'] + [i for i in BLASTS_224x224_6CAT_CLASSES]
         self.codes_filter = QFrame(self)
         self.codes_filter.setLineWidth(1)
@@ -177,8 +175,6 @@ class Filters(QFrame, Receiver):
         f = self.state.filters
         dtr_active, sdt, edt = f['datetime_range']
         if new_sdt != sdt and self._update_set:
-            # FIXME: This little block is added to prevent an echoing pop-up message
-            #        that seems to be caused by the calendar pop-up --------------------
             if self._calendar_popup and self._ignore_second:
                 self._ignore_second = False
                 self.start_datetime.setDateTime(
@@ -187,7 +183,6 @@ class Filters(QFrame, Receiver):
                 )
                 return
             self._ignore_second = True
-            # FIXME: -------------------------------------------------------------------
             if self.dtr_active.isChecked():
                 f['datetime_range'] = (dtr_active, new_sdt, edt)
                 self.state.filters = f
@@ -204,8 +199,6 @@ class Filters(QFrame, Receiver):
         f = self.state.filters
         dtr_active, sdt, edt = f['datetime_range']
         if new_edt != edt and self._update_set:
-            # FIXME: This little block is added to prevent an echoing pop-up message
-            #        that seems to be caused by the calendar pop-up --------------------
             if self._calendar_popup and self._ignore_second:
                 self._ignore_second = False
                 self.end_datetime.setDateTime(
@@ -214,7 +207,6 @@ class Filters(QFrame, Receiver):
                 )
                 return
             self._ignore_second = True
-            # FIXME: -------------------------------------------------------------------
             if self.dtr_active.isChecked():
                 f['datetime_range'] = (dtr_active, sdt, new_edt)
                 self.state.filters = f

@@ -8,9 +8,7 @@ class Signals(Enum):
     # application state data
     get_state = auto()  # request for state object
     state = auto()  # response to request for state object
-
     playhead_updated = auto()  # using in AudioControls and Spectrogram
-
     set_updated = auto()  # State sends out, used by SetSelection
     load_sample = auto()
     add_peak = auto()  # using in ClassificationControls and Spectrogram

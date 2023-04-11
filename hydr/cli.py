@@ -1,23 +1,3 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# Project:       CSIRO Hydrophone Project
-# Author:        Max Gunton
-# --------------------------------------------------------------------------------------
-# Description:   Contains all the CLI wrapper methods that are defined as console
-#                scripts in the `project.toml` file.  The actual implements of these
-#                methods are imported to the module from various other modules in this
-#                package.  Below is a list of the console scripts which includes: how to
-#                run them with a brief description of each:
-#
-#                - Create a new project directory hierarchy containing default
-#                  files/templates defined in hydrophone.definitions module
-#                  ```bash
-#                  $ new-deployment [-h] [-d DEST] name
-#                  ```
-#
-#
-# Note:          `create_new` method will not overwrite existing files.
-# --------------------------------------------------------------------------------------
 import argparse
 import os
 import sys
@@ -27,7 +7,6 @@ import datetime as dt
 if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR))
-
 # from this package
 from hydr.utils import (existing_directory, existing_file, existing_parent,
                         existing, valid_filename,  valid_device, load_depfile,
@@ -35,26 +14,10 @@ from hydr.utils import (existing_directory, existing_file, existing_parent,
 from hydr.deployment import (new_project, new_depfile, export_summaries,
                              export_wav_details, set_bounds, export_bounds)
 from hydr.classifications import (blasts_224x224_6cat, export_classifications,
-                                  import_classifications, export_validations,
-                                  file_column_fullpaths, file_column_basenames,
-                                  combine_csvs)
+                                  export_validations, file_column_fullpaths,
+                                  file_column_basenames, combine_csvs)
 from hydr.definitions import CONVENTIONS
 import hydr.validator.main as validator
-
-# TODO: Create a method (in `utils.py` probably) that takes:
-#       `the value to write`, `dest`, `default_name` and deals with saving to disk
-#       and checking if it will overwrite existing file etc.
-# TODO: depfiles should be opened here and then resaved here after function returns.
-#       And functions could be passed the deployment object and return it with the
-#       changes.
-# TODO: Methods that export i.e. save a result to disk should probably be in their own
-#       package (similar to cli.py) as another layer to processing results.  With the
-#       methods themselves either being passed the processed information or calling
-#       the necessary method that returns it
-# TODO: Want to make sure that all paths get converted to absolute paths here, but
-#       define method in utils.py
-# TODO: Add method for getting directory contents into utils.py
-# TODO: Put the default cli parameter values into definitions.
 
 
 def initialize_args(argslist) -> argparse.Namespace:
@@ -277,17 +240,6 @@ def blast_224x224_6cat_cli() -> None:
     blasts_224x224_6cat(args.depfile, args.device, args.batch_size)
 
 
-def import_classifications_cli():
-    # get command-line arguments
-    args = initialize_args(['depfile', 'csvdir'])
-
-    # call the scan method with the command-line arguments
-    import_classifications(args.depfile, args.csvdir)
-
-
-# TODO: Consider adding model as argument, but it is something we need to discover so
-#       leave as is for now
-# TODO: Add ability to choose to only export basename of files
 def export_classifications_cli():
     args = initialize_args(['depfile', 'dest_dir'])
     resp = 0

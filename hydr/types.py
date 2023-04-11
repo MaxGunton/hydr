@@ -21,9 +21,6 @@ if __name__ == "__main__":
 from hydr.definitions import ANALYSIS_DELAY, TQDM_WIDTH
 from hydr.utils import unique_items
 
-# TODO: Finish docstrings
-# TODO: Types probably shouldn't depend on any other modules in this package
-
 
 class Status(Flag):
     MachineLabelled = 1
@@ -133,9 +130,6 @@ class Classifications:
         return c
 
     def get_validations(self, start=None, end=None, check_for_missing=False):
-        # TODO: Compare validations against the classification and append any
-        #       missing classifications and re-sort
-        # TODO:
         c = self.classifications_to_validations(start, end)
         # print(c.columns)
 
@@ -151,7 +145,6 @@ class Classifications:
             idx = {i: c.columns.get_loc(i) for i in ['file', 'start', 'end', 'model']}
             to_add = []
 
-            # TODO: Come up with more efficient way to do this (This will take approx. 2min)
             # Check if validations contains each row of classifications by looking for
             # row with matching: `file`, `start`, `end`, and `model` values
             for i in tqdm(range(c.shape[0])):
@@ -522,7 +515,6 @@ class Hydrophone:
             else deployment_end
         )
 
-    # TODO: May want to convert these to dt.timedelta(seconds=)
     @staticmethod
     def compute_gaps(times):
         files = [f for f, _, _ in times]
@@ -542,7 +534,6 @@ class Hydrophone:
         return gaps
 
 
-# TODO: Will want to prevent/remove duplicate rows and multicodes from validations
 class Deployment:
     _convention = None
     _hydrophones = None

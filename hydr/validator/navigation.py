@@ -31,17 +31,12 @@ class Navigation(QFrame, Receiver):
         revisit_color = self.darken_color(STATUS_COLORS[str(Status.Revisit)])
         ml_color = self.darken_color(STATUS_COLORS[str(Status.MachineLabelled)])
 
-        # self.first_sample = QPushButton('First Sample', self)
-        # self.first_sample = QPushButton('FIRST', self)
         self.first_sample = QPushButton('\u21e4 First', self)
         self.first_sample.setFont(button_font)
-        # self.first_sample.setObjectName('first_sample')
-        # self.first_sample.setStyleSheet('#first_sample {color:}')
         self.first_sample.setMaximumHeight(25)
         self.first_sample.setMaximumWidth(150)
         self.first_sample.clicked.connect(self.first_sample_pressed)
 
-        # self.previous_submitted = QPushButton('Previous Submitted', self)
         self.previous_submitted = QPushButton('\u2190 Submitted', self)
         self.previous_submitted.setFont(button_font)
         self.previous_submitted.setObjectName('previous_submitted')
@@ -52,7 +47,6 @@ class Navigation(QFrame, Receiver):
         self.previous_submitted.setMaximumWidth(150)
         self.previous_submitted.clicked.connect(self.previous_submitted_pressed)
 
-        # self.previous_skipped = QPushButton('Previous Skipped', self)
         self.previous_skipped = QPushButton('\u2190 Skipped', self)
         self.previous_skipped.setFont(button_font)
         self.previous_skipped.setObjectName('previous_skipped')
@@ -63,7 +57,6 @@ class Navigation(QFrame, Receiver):
         self.previous_skipped.setMaximumWidth(150)
         self.previous_skipped.clicked.connect(self.previous_skipped_pressed)
 
-        # self.previous_revisit = QPushButton('Previous Revisit', self)
         self.previous_revisit = QPushButton('\u2190 Revisit', self)
         self.previous_revisit.setFont(button_font)
         self.previous_revisit.setObjectName('previous_revisit')
@@ -74,7 +67,6 @@ class Navigation(QFrame, Receiver):
         self.previous_revisit.setMaximumWidth(150)
         self.previous_revisit.clicked.connect(self.previous_revisit_pressed)
 
-        # self.previous_unprocessed = QPushButton('Previous Unprocessed', self)
         self.previous_unprocessed = QPushButton('\u2190 Unprocessed', self)
         self.previous_unprocessed.setFont(button_font)
         self.previous_unprocessed.setObjectName('previous_unprocessed')
@@ -85,7 +77,6 @@ class Navigation(QFrame, Receiver):
         self.previous_unprocessed.setMaximumWidth(150)
         self.previous_unprocessed.clicked.connect(self.previous_unprocessed_pressed)
 
-        # self.previous = QPushButton('Previous', self)
         self.previous = QPushButton('\u2190 -1', self)
         self.previous.setFont(button_font)
         self.previous.setObjectName('previous')
@@ -93,7 +84,6 @@ class Navigation(QFrame, Receiver):
         self.previous.setMaximumWidth(150)
         self.previous.clicked.connect(self.previous_pressed)
 
-        # self.next = QPushButton('Next', self)
         self.next = QPushButton('+1 \u2192', self)
         self.next.setFont(button_font)
         self.next.setObjectName('next')
@@ -101,7 +91,6 @@ class Navigation(QFrame, Receiver):
         self.next.setMaximumWidth(150)
         self.next.clicked.connect(self.next_pressed)
 
-        # self.next_unprocessed = QPushButton('Next Unprocessed', self)
         self.next_unprocessed = QPushButton('Unprocessed \u2192', self)
         self.next_unprocessed.setFont(button_font)
         self.next_unprocessed.setObjectName('next_unprocessed')
@@ -112,7 +101,6 @@ class Navigation(QFrame, Receiver):
         self.next_unprocessed.setMaximumWidth(150)
         self.next_unprocessed.clicked.connect(self.next_unprocessed_pressed)
 
-        # self.next_revisit = QPushButton('Next Revisit', self)
         self.next_revisit = QPushButton('Revisit \u2192', self)
         self.next_revisit.setFont(button_font)
         self.next_revisit.setObjectName('next_revisit')
@@ -123,7 +111,6 @@ class Navigation(QFrame, Receiver):
         self.next_revisit.setMaximumWidth(150)
         self.next_revisit.clicked.connect(self.next_revisit_pressed)
 
-        # self.next_skipped = QPushButton('Next Skipped', self)
         self.next_skipped = QPushButton('Skipped \u2192', self)
         self.next_skipped.setFont(button_font)
         self.next_skipped.setObjectName('next_skipped')
@@ -134,7 +121,6 @@ class Navigation(QFrame, Receiver):
         self.next_skipped.setMaximumWidth(150)
         self.next_skipped.clicked.connect(self.next_skipped_pressed)
 
-        # self.next_submitted = QPushButton('Next Submitted', self)
         self.next_submitted = QPushButton('Submitted \u2192 ', self)
         self.next_submitted.setFont(button_font)
         self.next_submitted.setObjectName('next_submitted')
@@ -145,7 +131,6 @@ class Navigation(QFrame, Receiver):
         self.next_submitted.setMaximumWidth(150)
         self.next_submitted.clicked.connect(self.next_submitted_pressed)
 
-        # self.last_sample = QPushButton('Last Sample')
         self.last_sample = QPushButton('Last \u21e5')
         self.last_sample.setFont(button_font)
         self.last_sample.setObjectName('last_sample')
@@ -169,9 +154,6 @@ class Navigation(QFrame, Receiver):
         self.on_load_sample(self, LoadMethod.Fresh)
 
     def on_load_sample(self, sender, how):
-        # if self.state.index is None:
-        #     self.disable(True)
-        # else:
         self.disable(False)
         if self.state.index is not None and self.state.shistory_idx is not None:
             disable_previous = (

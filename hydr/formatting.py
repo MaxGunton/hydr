@@ -2,9 +2,7 @@
 import os
 import sys
 import datetime as dt
-import pandas as pd
-from typing import List
-from collections import Counter, OrderedDict
+from collections import OrderedDict
 
 # if running as script need to add the current directory to the path
 if __name__ == "__main__":
@@ -63,6 +61,7 @@ def format_file_list(files: str) -> str:
     files = ["None"] if len(files) == 0 else files
     return f'\n{", ".ljust(LABEL_WIDTH)}'.join(files)
 
+
 def format_utc_offset(offset):
     prefix = "UTC" if offset < 0 else "UTC+"
     return f"{prefix}{offset}".rstrip("0").rstrip("0")
@@ -108,7 +107,6 @@ def strformat_seconds(seconds: float) -> str:
     return fs.format(abs(seconds), str(dt.timedelta(seconds=abs(seconds)))[:-4])
 
 
-# TODO: Define the date format in definitions.py
 def format_deployment_summary(data):
     """
     define the layout as an ordered dictionary of the form:

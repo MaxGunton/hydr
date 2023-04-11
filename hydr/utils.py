@@ -1,30 +1,16 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# Project:       CSIRO Hydrophone Project
-# Author:        Max Gunton
-# --------------------------------------------------------------------------------------
-# Description:   Shared methods used by modules within the hydrophone package
-# --------------------------------------------------------------------------------------
-
 # python standard library
 import os
 import sys
 import datetime as dt
-import numpy as np
-import pandas as pd
 from pickle import load, dump
 
 # if running as script need to add the current directory to the path
 if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(os.path.dirname(SCRIPT_DIR))
-
 # from this package
-from hydr.definitions import (
-    ContainsRestrictedCharacter,
-    ALLOWED_FILENAME_CHARACTERS,
-    DEVICES,
-)
+from hydr.definitions import (ContainsRestrictedCharacter, ALLOWED_FILENAME_CHARACTERS,
+                              DEVICES)
 
 
 # DECORATOR for classes to make them singleton
@@ -39,14 +25,12 @@ def singleton(class_):
     return get_instance
 
 
-# FIXME: SHARED
 def load_depfile(depfile: str):
     with open(depfile, 'rb') as fileobj:
         deployment = load(fileobj)
     return deployment
 
 
-# FIXME: SHARED
 def save_depfile(deployment, dest: str, check_overwrite=True) -> None:
     if not check_overwrite or ok_to_write(dest):
         with open(dest, 'wb') as fileobj:

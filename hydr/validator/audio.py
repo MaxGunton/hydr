@@ -62,16 +62,7 @@ class AudioControls(QFrame, Receiver):
 
     @property
     def playhead_start(self):
-        # return (
-        #     self._playhead_start
-        #     if self._playhead_start is not None
-        #     else self.state.new_samples[0].start
-        # )
         return self.state.new_samples[0].start
-
-    # @playhead_start.setter
-    # def playhead_start(self, playhead_start):
-    #     self._playhead_start = playhead_start
 
     @Slot()
     def step_back_pressed(self):
@@ -99,12 +90,6 @@ class AudioControls(QFrame, Receiver):
         new_position = self.state.playhead + AUDIO_STEP
         self.state.playhead = min(new_position, self.state.current_sample['end'])
 
-    # def on_playhead_updated(self, _):
-    #     if not self.state.playing:
-    #         self.playhead_start = self.state.playhead
-
-    # TODO: Try to remove the slight lag in playline to audio (probably done by
-    #       optimizing Spectrogram.draw_vlines method)
     def play_audio(self):
         file = self.state.current_sample['file']
         end = self.state.current_sample['end']
@@ -147,7 +132,6 @@ class AudioControls(QFrame, Receiver):
                     self.state.playhead = self.playhead_start
         self.play_pause.setIcon(self.play_icon)
 
-        # self._play_position = None
         stream.close()
         p.terminate()
 

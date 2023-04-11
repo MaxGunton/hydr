@@ -1,8 +1,6 @@
 import sys
 import os
-
 import numpy as np
-
 
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QComboBox, QFrame, QLineEdit

@@ -1,4 +1,3 @@
-import datetime
 import sys
 import os
 import colorsys
@@ -27,18 +26,8 @@ from hydr.definitions import (DISPLAY_SPEC_PARAMS, PEAK_SPEC_PARAMS, NUM_COLORS,
                                     VALIDATOR_COLORS, STATUS_COLORS)
 from hydr.types import Status, LoadMethod, Sample
 from hydr.validator.signals import Receiver
-from hydr.validator.misc import QHLine
 
 
-# TODO: Convert pixels to seconds on export
-# TODO: Add a little bound label beside the start of each bound with a number
-# TODO: Make bounds selectable for removal
-# TODO: Have additional peaks added when multiple bound (how to do this?)
-# TODO: Draw previous bounds and peaks if any
-# TODO: Implement logic to deal with multiple peaks
-# TODO: Make sure spectrogram is always a standard size (i.e. resize to some defined
-#       dimensions)
-# TODO: Add the ability to drag bounds and peaks
 class SpectrogramFrame(QFrame, Receiver):
 
     _colors = None
@@ -103,8 +92,6 @@ class SpectrogramFrame(QFrame, Receiver):
         self.details.layout.addWidget(self.duration_details)
 
         self.time_details = QFrame(self)
-        # self.time_details.setLineWidth(1)
-        # self.time_details.setFrameStyle(QFrame.Box | QFrame.Plain)
         self.time_details.layout = QHBoxLayout(self.time_details)
         self.time_details.layout.setContentsMargins(0, 0, 0, 0)
         self.start_time = QLabel('', self.time_details)
@@ -206,9 +193,6 @@ class SpectrogramFrame(QFrame, Receiver):
         return new_color
 
 
-# TODO: Show the current code in the top left corner if it has been set
-# TODO: Show the sample duration and date in the top right corner
-# TODO: Have the option to hide these using a checkbox
 class Spectrogram(QLabel, Receiver):
     _kernels = None
     _log_norm = None
@@ -229,7 +213,6 @@ class Spectrogram(QLabel, Receiver):
         self.setFocusPolicy(Qt.ClickFocus)
         self.setScaledContents(True)
 
-        # TODO: Figure out a good minimums to use
         self.setMinimumWidth(400)
         self.setMinimumHeight(200)
 
@@ -252,9 +235,11 @@ class Spectrogram(QLabel, Receiver):
     @property
     def playhead(self):
         return self.secs_from_sof_to_xpixel(self.state.playhead)
+
     @property
     def cs(self):
         return self.state.current_sample
+
     @property
     def colors(self):
         return VALIDATOR_COLORS
@@ -273,10 +258,8 @@ class Spectrogram(QLabel, Receiver):
                 self.state.new_samples[0].start
             )
             self.setDisabled(True if self._base_spec is self._no_spec else False)
-            # self.setFocus()
         elif how == LoadMethod.AutoSet:
             self.autoset_sample()
-            # self.setFocus()
         elif how == LoadMethod.Refresh:
             self.playhead = self.playhead
 
@@ -372,8 +355,6 @@ class Spectrogram(QLabel, Receiver):
                     self.cs['end'] - self.cs['start']
                 )
             )
-        # self._start_history = [start]
-        # self._end_history = [end]
         self.state.new_samples[0].start = self.xpixel_to_secs_from_sof(start)
         self.state.new_samples[0].end = self.xpixel_to_secs_from_sof(end)
         self.state.new_samples[0].peak = self.xpixel_to_secs_from_sof(peak)
@@ -396,8 +377,6 @@ class Spectrogram(QLabel, Receiver):
         self.state.new_samples[index].peak = peak
         self.state.refresh()
 
-    # TODO: Only update the necessary portions of the pixmap and see if we can avoid
-    #       doing a full conversion from numpy array everytime we redraw
     def draw_vlines(self):
         s = np.copy(self._base_spec)
         lt = LINE_THICKNESS

@@ -1,11 +1,9 @@
 import sys
 import os
-
 import pandas as pd
 from blinker import signal
 import numpy as np
 import datetime as dt
-# import soundfile as sf
 
 if __name__ == "__main__":
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,11 +16,6 @@ from hydr.types import Status, Sample, LoadMethod
 from hydr.validator.signals import Connector, Signals
 
 
-# TODO: load_current_sample, clear_sample, and assigning to self.new_samples trigger
-#       the on_index_updated signal
-
-# TODO: Load any samples that overlap with the loaded sample (i.e. if they were
-#       classified differently)
 @singleton
 class State(Connector):
     """
@@ -47,7 +40,7 @@ class State(Connector):
     _playing = None
 
     _index = None  # int
-    _current_sample = None  # FIXME: Make it impossible to change this value
+    _current_sample = None
     _new_samples = None  # List[Samples]
 
     _shistory = None  # List of indexes
@@ -157,9 +150,6 @@ class State(Connector):
     @sn.setter
     def sn(self, sn):
         self._sn = sn
-        # update the date range to the one for the specific hydrophone
-        # TODO: Put an option to set to deployment bounds in filters widget as well as
-        #       an option to add a delay
         sdt = (self.deployment.hydrophones[self._sn].deployment_start +
                dt.timedelta(seconds=ANALYSIS_DELAY))
         edt = self.deployment.hydrophones[self._sn].deployment_end
@@ -228,8 +218,6 @@ class State(Connector):
         sl_active, slen = self.filters['sample_length']
         codes = self.filters['codes']
 
-        # TODO: Add logic to deal with samples where they start in one day and end in
-        #       the next
         if td_active:
             start_times = df['global_start'].apply(
                 lambda x: dt.time(hour=x.hour, minute=x.minute, second=x.second)
@@ -249,7 +237,6 @@ class State(Connector):
         self._shistory = self.df_set.index.tolist()
         self._shistidx_to_rownum = [i for i in range(self.df_set.shape[0])]
         self._rownum_to_shistidx = self._shistidx_to_rownum.copy()
-        # self._index_mapping = [(i, i) for i in self._shistory]
         signal(Signals.set_updated).send(self)
         if reset_index:
             self._index = None
@@ -264,10 +251,6 @@ class State(Connector):
         col_idxs = [self.df_all.columns.get_loc(c) for c in cols]
         if self.index is not None:
             r = self.df_all.iloc[self.index, col_idxs].copy()
-            # with sf.SoundFile(r['file']) as wo:
-            #     buffer = VALIDATOR_SAMPLE_BUFFER
-            #     r['start'] = max(r['start'] - buffer, 0)
-            #     r['end'] = min(r['end'] + buffer, (wo.frames / wo.samplerate))
         else:
             r = pd.Series({c: None for c in cols})
         self._current_sample = {c: r[c] for c in cols[:-1]}
@@ -280,13 +263,11 @@ class State(Connector):
         ]
         signal(Signals.load_sample).send(self, how=LoadMethod.Fresh)
 
-    # TODO: May want to set save=False if application seems slow
     def refresh(self, save=True):
         if save:
             self.save_changes()
         signal(Signals.load_sample).send(self, how=LoadMethod.Refresh)
 
-    # TODO: May want to set save=False if application seems slow
     def autoset(self, save=True):
         if save:
             self.save_changes()
@@ -408,19 +389,12 @@ class State(Connector):
     def save_changes(self, status=None):
         if self.index is not None:
             status = self.current_sample['val_status'] if status is None else status
-            # print(self.index, status)
             new_vals = {'val_samples': self.new_samples, 'val_status': status}
             cidx = [self._df_all.columns.get_loc(k) for k in new_vals]
-            # print(f'index: {self.index}')
             self._df_all.iloc[self.index, cidx] = pd.Series(new_vals)
-            # print('df_all updated sucessfully')
-            # print(f'shistory_idx: {self._shistory_idx}')
-            # print(f'{self._df_set.columns}')
             val_status_cid = self._df_set.columns.get_loc('val_status')
-            # print(f'shistory_idx: {self._shistory_idx}')
             self._df_set.iloc[self._shistory_idx, val_status_cid] = status
-            # print('df_set updated sucessfully')
             self.deployment.validations = self.df_all
             save_depfile(self.deployment, self.depfile, False)
-            # print('Saved Sucessfully')
+
 

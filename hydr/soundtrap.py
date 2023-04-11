@@ -1,22 +1,3 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# Project:       CSIRO Hydrophone Project
-# Author:        Max Gunton
-# --------------------------------------------------------------------------------------
-# Description:   Contains methods for dealing with SoundTrap files by knowing
-#                conventions in naming and file structure/contents.  Some of the methods
-#                available are:
-#
-#                  - `utc_offset_from_logfile`
-#                  - `gain_from_logfile`
-#                  - `dt_from_filename`
-#                  - `wav_details`
-#                  - `ext_counts`
-#                  - `calibration_info_str`
-#                  - `calibration_info_dict`
-#
-# --------------------------------------------------------------------------------------
-
 # python standard library
 import os
 import datetime as dt
@@ -45,7 +26,6 @@ DEVICE_PROPERTIES = {
 }
 
 
-# FIXME: SHARED
 def follows_conventions(file: str) -> bool:
     """
     Given input parameter `file` representing a filename, this method will return True
@@ -71,7 +51,6 @@ def follows_conventions(file: str) -> bool:
     return True
 
 
-# FIXME: SHARED
 def utc_offset_from_logfile(logfile: str) -> Union[float, None]:
     """
     Given the parameter `logfile` this method parses it for the `SamplingStartTimeUTC`
@@ -117,7 +96,6 @@ def utc_offset_from_logfile(logfile: str) -> Union[float, None]:
         return None
 
 
-# FIXME: SHARED
 def gain_from_logfile(logfile: str) -> Union[str, None]:
     """
     Given the parameter `logfile` this method parses the `Gain` value used from it.  If
@@ -148,7 +126,6 @@ def gain_from_logfile(logfile: str) -> Union[str, None]:
         return None
 
 
-# FIXME: SHARED
 def dt_from_filename(file: str) -> dt.datetime:
     """
     Given the parameter `file` extract the datetime encoding and return it as a
@@ -162,7 +139,6 @@ def dt_from_filename(file: str) -> dt.datetime:
     return dt.datetime.strptime(os.path.basename(file).split(".")[1], "%y%m%d%H%M%S")
 
 
-# FIXME: SHARED
 def sn_from_filename(file: str) -> str:
     """
     Given the parameter `file` extract the serial number encoded and return it as a
@@ -176,12 +152,10 @@ def sn_from_filename(file: str) -> str:
     return os.path.basename(file).split(".")[0]
 
 
-# FIXME: SHARED
 def ext_from_filename(file: str) -> str:
     return ".".join(os.path.basename(file).split(".")[2:])
 
 
-# FIXME: SHARED
 def extra_wav_details(filename: str) -> Dict[str, Any]:
     utc_offset = utc_offset_from_logfile(filename[:-3] + "log.xml")
     gain = gain_from_logfile(filename[:-3] + "log.xml")

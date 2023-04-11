@@ -2,10 +2,9 @@ import sys
 import os
 import numpy as np
 import pandas as pd
-import datetime as dt
 
 from PySide6.QtGui import QFont, QColor, QPalette, Qt, QPen
-from PySide6.QtCore import QRect, Slot, QAbstractItemModel, QModelIndex
+from PySide6.QtCore import QRect, Slot
 from PySide6.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QTableWidget, QFrame,
                                QTableWidgetItem, QAbstractItemView, QStyledItemDelegate,
                                QHeaderView, QStyleOptionViewItem, QStyle)
@@ -20,9 +19,6 @@ from hydr.types import LoadMethod, Status
 from hydr.utils import unique_items
 
 
-# TODO: Have the first heading row darker background
-
-# TODO: Adjust the default column widths so that they are just big enough
 class SampleDisplay(QFrame, Receiver):
     _table_values = None
     _columns = None
@@ -66,8 +62,6 @@ class SampleDisplay(QFrame, Receiver):
 
         df = self.state.df_set.copy()
         self.table = QTableWidget(df.shape[0], len(self._cheadings), self.table_frame)
-        # self.table_model = TableModel()
-        # self.table.setModel(self.table_model)
         self.table.clicked.connect(self.table_clicked)
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -227,8 +221,6 @@ class ColorDelegate(QStyledItemDelegate, Receiver):
         return self._colors
 
     def paint(self, painter, option: QStyleOptionViewItem, index):
-        # kill the focus rect
-        # option.state = option.state & ~QStyle.State_HasFocus
         if QStyle.State_Selected in option.state:
             option.state = QStyle.State_Enabled
             vid = self.state.df_set.columns.get_loc('val_status')
@@ -257,68 +249,3 @@ class ColorDelegate(QStyledItemDelegate, Receiver):
                 painter.drawLine(rect.topRight(), rect.bottomRight())
         else:
             QStyledItemDelegate.paint(self, painter, option, index)
-
-
-# class TableModel(QAbstractItemModel):
-#
-#     _df = None
-#     def __init__(self, parent=None):
-#         QAbstractItemModel.__init__(self, parent)
-#
-#     def set_data(self, df):
-#         self._df = df
-#
-#     def index(self, row, column, parent=None, PySide6_QtCore_QModelIndex=None,
-#               PySide6_QtCore_QPersistentModelIndex=None, *args, **kwargs) -> QModelIndex:
-#         QAbstractItemModel.index()
-#
-#         if not QAbstractItemModel.hasIndex(self, row, column, parent):
-#             return QModelIndex()  # return value indicates index is invalid
-#
-#         return QAbstractItemModel.createIndex(self, row, column)
-#
-#     def data(self, index, role):
-#         if not index.isValid():
-#             return None
-#         if role == Qt.DisplayRole:
-#             node = index.internalPointer()
-#             col = index.column()
-#             key = self._columns[col]
-#             val = self._displays[key](
-#                 node.data(col)) if key in self._displays.keys() else node.data(col)
-#             val = "" if pd.isnull(val) else val
-#             return str(val)
-#
-#     def headerData(self, section, orientation, role):
-#         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-#             return self._root.data(section)
-#
-#     def sort(self, column, order):
-#         self.layoutAboutToBeChanged.emit()
-#         ascending = True if order == Qt.AscendingOrder else False
-#         if column <= 1:
-#             self._pnode.sort(column,
-#                              ascending)  # sort by the extensions, i.e. sort the first level nodes
-#         elif column > 1:
-#             for child_index in range(self._pnode.childCount()):
-#                 child = self._pnode.child(child_index)
-#                 child.sort(column,
-#                            ascending)  # sort by any of the file details, i.e. sort leaf nodes
-#         self.layoutChanged.emit()
-#
-#     def rowCount(self, index):
-#         if index.isValid():
-#             return index.internalPointer().childCount()
-#         return self._root.childCount()
-#
-#     def columnCount(self, index):
-#         if index.isValid():
-#             return index.internalPointer().columnCount()
-#         return self._root.columnCount()
-#
-#     def parent(self, index):
-#         if index.isValid():
-#             p = index.internalPointer().parent
-#             if p:
-#                 return QAbstractItemModel.createIndex(self, p.row, 0, p)
-#         return QModelIndex()

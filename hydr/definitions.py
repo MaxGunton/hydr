@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # python standard library
 import os
 import numpy as np
@@ -97,8 +95,7 @@ VALIDATOR_COLORS['peak'] = [
 
 # BLAST_224X224_6CAT >>>
 DEVICES = tuple([f'cuda:{i}' for i in range(100)] + ['cpu'])
-BLASTS_224x224_6CAT_WEIGHTS = (f'{SRC_PATH}/hydrophone/models/'
-                               f'blasts_224x224_6cat.pth')
+BLASTS_224x224_6CAT_WEIGHTS = f'{SRC_PATH}/hydr/models/blasts_224x224_6cat.pth'
 BLASTS_224x224_6CAT_OUTPUT_COLUMNS = [
     "file",
     "start",
@@ -113,7 +110,7 @@ BLASTS_224x224_6CAT_OUTPUT_COLUMNS = [
     "undetermined_confidence",
     "model",
 ]
-# TODO: Change this to BLAST_224x224_6CAT_SPEC_PARAMS
+
 BLASTS_224x224_6CAT_SPEC_PARAMS = dict(
     n_fft=4096,
     win_length=4096,

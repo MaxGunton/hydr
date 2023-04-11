@@ -1,5 +1,5 @@
 dist
-hydrophone.egg-info
-hydrophone/models/blasts_224x224_6cat.pth
+hydr.egg-info
+hydr/models/blasts_224x224_6cat.pth
 *__pycache__
 .idea
