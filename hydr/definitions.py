@@ -43,6 +43,7 @@ BLAST_CLASSES = [
     'bump/scrap',
     'rumble',
     'vessel',
+    'undetermined',
     'other'
 ]
 DISPLAY_SPEC_PARAMS = dict(
