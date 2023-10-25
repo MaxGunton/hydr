@@ -171,7 +171,7 @@ def map_hydrophones(coord_file, dest):
     # 6) save our kml to disk
     dest = os.path.join(dest, 'deployment_map.kml')
     if ok_to_write(dest):
-        kml.save(os.path.join(dest, 'deployment_map.kml'))
+        kml.save(dest)
 
 
 def total_to_dms(t):
