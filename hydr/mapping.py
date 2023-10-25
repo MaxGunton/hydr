@@ -9,6 +9,7 @@ from scipy.spatial import ConvexHull
 import utm
 from shapely.geometry import Point, LineString
 from matplotlib.cm import gist_rainbow
+from hydr.utils import ok_to_write
 
 
 MEAN_EARTH_RADIUS = 6371000  # meters
@@ -168,7 +169,9 @@ def map_hydrophones(coord_file, dest):
         draw_hull_area(df, hull.vertices, kml)
 
     # 6) save our kml to disk
-    kml.save(os.path.join(dest, 'deployment_map.kml'))
+    dest = os.path.join(dest, 'deployment_map.kml')
+    if ok_to_write(dest):
+        kml.save(os.path.join(dest, 'deployment_map.kml'))
 
 
 def total_to_dms(t):
@@ -275,8 +278,9 @@ def add_hydrophone_coords(dest):
     columns = ['Latitude', 'Latitude (D\u00b0M.M\u02b9)', 'Latitude (D\u00b0M\u02b9S.S")',
                'Longitude', 'Longitude (D\u00b0M.M\u02b9)', 'Longitude (D\u00b0M\u02b9S.S")']
     df[columns] = df.apply(compute_full_coord, axis=1)
-    df[['Serial Number'] + columns].to_csv(os.path.join(dest, 'hydrophone_coordinates.csv'), index=False,
-                                           encoding='utf8')
+    dest = os.path.join(dest, 'hydrophone_coordinates.csv')
+    if ok_to_write(dest):
+        df[['Serial Number'] + columns].to_csv(dest, index=False, encoding='utf8')
 
 
 def add_hydrophone_coords_cli():
