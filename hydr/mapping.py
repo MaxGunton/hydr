@@ -156,15 +156,16 @@ def map_hydrophones(coord_file, dest):
     # 2) add the hydrophones as points
     df.apply(lambda x: draw_hydrophones(x, kml), axis=1)
 
-    # 3) compute convex hull of the hydrophones
-    hpts = df[['lat', 'lon']].to_numpy()
-    hull = ConvexHull(hpts)
+    # 3) compute convex hull of the hydrophones (if 3 or more points)
+    if df.shape[0] > 2:
+        hpts = df[['lat', 'lon']].to_numpy()
+        hull = ConvexHull(hpts)
 
-    # 4) draw the hull perimeter
-    draw_hull_perimeter(df, hull.vertices, kml)
+        # 4) draw the hull perimeter
+        draw_hull_perimeter(df, hull.vertices, kml)
 
-    # 5) draw the hull area
-    draw_hull_area(df, hull.vertices, kml)
+        # 5) draw the hull area
+        draw_hull_area(df, hull.vertices, kml)
 
     # 6) save our kml to disk
     kml.save(os.path.join(dest, 'deployment_map.kml'))
