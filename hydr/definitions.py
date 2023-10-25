@@ -3,7 +3,8 @@ import os
 import numpy as np
 from matplotlib import cm as colormap
 
-SRC_PATH = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
+# SRC_PATH = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
+SRC_PATH = os.path.split(os.path.abspath(__file__))[0]
 TQDM_WIDTH = 25
 CONVENTIONS = ['SoundTrap']
 
@@ -95,7 +96,7 @@ VALIDATOR_COLORS['peak'] = [
 
 # BLAST_224X224_6CAT >>>
 DEVICES = tuple([f'cuda:{i}' for i in range(100)] + ['cpu'])
-BLASTS_224x224_6CAT_WEIGHTS = f'{SRC_PATH}/hydr/models/blasts_224x224_6cat.pth'
+BLASTS_224x224_6CAT_WEIGHTS = f'{SRC_PATH}/models/blasts_224x224_6cat.pth'
 BLASTS_224x224_6CAT_OUTPUT_COLUMNS = [
     "file",
     "start",
