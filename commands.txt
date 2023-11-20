@@ -3,3 +3,32 @@ hydr_torch installs
 torch = { url = "https://download.pytorch.org/whl/cu117/torch-1.13.0%2Bcu117-cp37-cp37m-win_amd64.whl" }
 torchaudio = { url = "https://download.pytorch.org/whl/cu117/torchaudio-0.13.0%2Bcu117-cp37-cp37m-win_amd64.whl" }
 torchvision = { url = "https://download.pytorch.org/whl/cu117/torchvision-0.14.0%2Bcu117-cp37-cp37m-win_amd64.whl"
+
+
+
+
+$ sudo apt install ffmpeg libsm6 libxext6
+                OR
+$ sudo apt install libgl1
+
+
+
+$ sudo apt update
+$ sudo apt install git
+$ sudo apt install software-properties-common
+$ sudo add-apt-repository ppa:deadsnakes/ppa
+$ sudo apt update
+$ sudo apt install python3.7 python3.7-distutils python3.7-dev python3.7-venv python3-pip
+$ sudo apt install portaudio19-dev python3-pyaudio
+$ sudo apt install libsndfile1
+$ python3.7 -m pip install --upgrade pip
+$ export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.7
+$ export PATH="/home/max/.local/bin:$PATH"
+$ mkvirtualenv hydr
+
+
+export WORKON_HOME=/home/max/.virtualenvs
+export PATH=/home/max/.locak/bin:$PATH
+export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.7
+source /home/max/.local/bin/virtualenvwrapper.sh
+
