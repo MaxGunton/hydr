@@ -1,5 +1,4 @@
 dist
 hydr.egg-info
-hydr/models/blasts_224x224_6cat.pth
 *__pycache__
 .idea
