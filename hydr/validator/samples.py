@@ -18,6 +18,9 @@ from hydr.validator.signals import Receiver
 from hydr.types import LoadMethod, Status
 from hydr.utils import unique_items
 
+# Added for backward compatibility
+import hydr.types
+sys.modules['hydrophone.types'] = hydr.types
 
 class SampleDisplay(QFrame, Receiver):
     _table_values = None

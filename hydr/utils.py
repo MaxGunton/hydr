@@ -26,6 +26,10 @@ def singleton(class_):
 
 
 def load_depfile(depfile: str):
+    # Added for backward compatibility
+    import hydr
+    sys.modules['hydrophone'] = hydr
+
     with open(depfile, 'rb') as fileobj:
         deployment = load(fileobj)
     return deployment
