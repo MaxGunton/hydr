@@ -314,7 +314,7 @@ def combine_csvs_cli() -> None:
     args = initialize_args(['csvdir', 'dest'])
 
     # call the generate_summary method with the command-line arguments
-    combine_csvs(args.datadir, args.dest)
+    combine_csvs(args.csvdir, args.dest)
 
 
 def validator_cli():
