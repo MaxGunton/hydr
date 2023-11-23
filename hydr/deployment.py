@@ -164,6 +164,10 @@ def export_summaries(depfile: str, sns: str = None, dest: str = '.') -> None:
             audio_end=h.audio_end,
             deployment_start=h.deployment_start,
             deployment_end=h.deployment_end,
+            lat=h.lat,
+            lat_s=h.lat_s,
+            lon=h.lon,
+            lon_s=h.lon_s,
             total_audio=h.total_audio.total_seconds(),
             bad_wavfiles=h.bad_wavfiles,
             bad_logfiles=h.bad_logfiles,
@@ -180,7 +184,7 @@ def export_summaries(depfile: str, sns: str = None, dest: str = '.') -> None:
         )
         summary = formatting.summary_report(deployment_details, device_details)
         if ok_to_write(f"{dest}/{h.sn}_summary.txt"):
-            with open(f"{dest}/{h.sn}_summary.txt", "wt") as outfile:
+            with open(f"{dest}/{h.sn}_summary.txt", "w", encoding="utf-8") as outfile:
                 outfile.write(summary)
     save_depfile(deployment, depfile, check_overwrite=False)
 
@@ -226,18 +230,3 @@ def export_wav_details(depfile: str, sns: str = None, dest: str = '.') -> None:
         if ok_to_write(f"{dest}/{h.sn}_wav_details.csv"):
             df.to_csv(f"{dest}/{h.sn}_wav_details.csv", index=False)
     save_depfile(deployment, depfile, check_overwrite=False)
-
-
-def export_bounds(depfile: str, dest: str = '.'):
-    dest = f'{dest}/bounds.csv' if os.path.isdir(dest) else dest
-    deployment = load_depfile(depfile)
-    sns = deployment.sns
-    d_starts = [deployment.hydrophones[sn].deployment_start for sn in sns]
-    d_ends = [deployment.hydrophones[sn].deployment_end for sn in sns]
-    a_starts = [deployment.hydrophones[sn].audio_start for sn in sns]
-    a_ends = [deployment.hydrophones[sn].audio_end for sn in sns]
-    bounds = pd.DataFrame({'serial_number': sns, 'audio_start': a_starts,
-                           'deployment_start': d_starts, 'audio_end': a_ends,
-                           'deployment_end': d_ends})
-    if ok_to_write(dest):
-        bounds.to_csv(dest, index=False)

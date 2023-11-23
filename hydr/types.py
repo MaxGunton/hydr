@@ -1,7 +1,7 @@
 # python standard library
 import os
 import datetime as dt
-from typing import List, Dict
+from typing import List, Dict, Optional
 from collections import Counter
 import soundfile as sf
 import sys
@@ -360,6 +360,39 @@ class Hydrophone:
         return self._sn
 
     @property
+    def lat(self) -> Optional[float]:
+        return self._lat
+
+    @property
+    def lon(self) -> Optional[float]:
+        return self._lon
+
+    @property
+    def lat_s(self) -> Optional[str]:
+        if self._lat is None:
+            return None
+        else:
+            lat = self._lat
+            lat_deg = int(abs(lat) // 1)
+            lat_min = int(((abs(lat) % 1) * 60) // 1)
+            lat_sec = (((abs(lat) % 1) * 60) % 1) * 60
+            lat_deg = lat_deg * -1 if lat < 0 else lat_deg
+            return f'{lat_deg}\u00b0 {lat_min}\u02b9 {lat_sec:.2f}"'
+
+    @property
+    def lon_s(self) -> Optional[str]:
+        if self._lon is None:
+            return None
+        else:
+            lon = self._lon
+            lon_deg = int(abs(lon) // 1)
+            lon_min = int(((abs(lon) % 1) * 60) // 1)
+            lon_sec = (((abs(lon) % 1) * 60) % 1) * 60
+            lon_deg = lon_deg * -1 if lon < 0 else lon_deg
+            return f'{lon_deg}\u00b0 {lon_min}\u02b9 {lon_sec:.2f}"'
+
+
+    @property
     def files(self) -> List[str]:
         return self._files
 
@@ -494,6 +527,16 @@ class Hydrophone:
     @property
     def gain_counts(self) -> Dict[str, int]:
         return dict(Counter([w.gain for w in self.relevant_wavs if w.gain is not None]))
+
+    @lat.setter
+    def lat(self, lat):
+        if -90 <= lat <= 90:
+            self._lat = lat
+
+    @lon.setter
+    def lon(self, lon):
+        if -180 <= lon <= 180:
+            self._lon = lon
 
     @ext_counts.setter
     def ext_counts(self, ext_counts):

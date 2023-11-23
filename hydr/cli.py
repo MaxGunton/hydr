@@ -12,10 +12,11 @@ from hydr.utils import (existing_directory, existing_file, existing_parent,
                         existing, valid_filename,  valid_device, load_depfile,
                         answered_yes, unique_items, save_depfile)
 from hydr.deployment import (new_project, new_depfile, export_summaries,
-                             export_wav_details, set_bounds, export_bounds)
+                             export_wav_details, set_bounds)
 from hydr.classifications import (blasts_224x224_6cat, export_classifications,
                                   export_validations, file_column_fullpaths,
                                   file_column_basenames, combine_csvs)
+from hydr.mapping import set_coords, export_map
 from hydr.definitions import CONVENTIONS
 import hydr.validator.main as validator
 
@@ -50,6 +51,12 @@ def initialize_args(argslist) -> argparse.Namespace:
             help="directory containing csv files",
             default=".",
             type=existing_directory,
+        )
+    if 'csvfile' in argslist:
+        parser.add_argument(
+            "csv",
+            help="samples file",
+            type=existing_file,
         )
     if 'sns' in argslist:
         parser.add_argument(
@@ -212,13 +219,12 @@ def set_bounds_cli() -> None:
                     else:
                         break
 
-
-def export_bounds_cli() -> None:
+def set_coords_cli():
     # get command-line arguments
-    args = initialize_args(['depfile', 'dest'])
+    args = initialize_args(['depfile'])
 
-    # call the generate_summary method with the command-line arguments
-    export_bounds(args.depfile, args.dest)
+    # call the create_project_directory with the arguments passed
+    set_coords(args.depfile)
 
 
 def blast_224x224_6cat_cli() -> None:
@@ -240,7 +246,7 @@ def blast_224x224_6cat_cli() -> None:
     blasts_224x224_6cat(args.depfile, args.device, args.batch_size)
 
 
-def export_classifications_cli():
+def export_classifications_cli() -> None:
     args = initialize_args(['depfile', 'dest_dir'])
     resp = 0
     deployment = load_depfile(args.depfile)
@@ -262,7 +268,7 @@ def export_classifications_cli():
     export_classifications(args.depfile, model, args.dest)
 
 
-def export_validations_cli():
+def export_validations_cli() -> None:
     args = initialize_args(['depfile', 'dest_dir'])
     resp = 0
     deployment = load_depfile(args.depfile)
@@ -284,7 +290,13 @@ def export_validations_cli():
     export_validations(args.depfile, model, args.dest)
 
 
-def file_column_fullpaths_cli():
+def export_map_cli() -> None:
+    args = initialize_args(['depfile', 'dest_dir'])
+
+    export_map(args.depfile, args.dest)
+
+
+def file_column_fullpaths_cli() -> None:
     # get command-line arguments
     args = initialize_args(['datadir', 'csvdir'])
 
@@ -292,7 +304,7 @@ def file_column_fullpaths_cli():
     file_column_fullpaths(args.datadir, args.csvdir)
 
 
-def file_column_basenames_cli():
+def file_column_basenames_cli() -> None:
     # get command-line arguments
     args = initialize_args(['csvdir'])
 
@@ -317,8 +329,167 @@ def combine_csvs_cli() -> None:
     combine_csvs(args.csvdir, args.dest)
 
 
-def validator_cli():
+def validator_cli() -> None:
     # get command-line arguments
     args = initialize_args(['depfile'])
     # call the generate_summary method with the command-line arguments
     validator.run(args.depfile)
+
+
+
+
+
+
+
+
+
+
+
+
+# # def combine_overlapping_cli(samples_file: SamplesFile,
+# #                             outfile: Outfile=None) -> None:
+# #     combine_overlapping(samples_file, outfile)
+# def combine_overlapping_cli() -> None:
+#     """
+#     Wrapper adding commandline parsing to mtools.core.combine_overlapping function.
+#
+#     See documentation for [mtools.core.combine_overlapping](core.html#combine_overlapping) for
+#     more details.
+#     """
+#     # get command-line arguments
+#     args = initialize_args(['csvfile', 'dest'])
+#     # call the combine_overlapping_method
+#     combine_overlapping(args.csv, args.dest)
+#
+#
+#
+# # def multicodes_cli(samples_file: SamplesFile,
+# #                    outfile: Outfile=None) -> None:
+# #     multicodes(samples_file, outfile)
+# def multicodes_cli() -> None:
+#     """
+#     Wrapper adding commandline parsing to mtools.core.multicodes function.
+#
+#     See documentation for [mtools.core.multicodes](core.html#multicodes) for
+#     more details.
+#     """
+#     args = initialize_args(['csvfile', 'dest'])
+#     multicodes(args.csv, args.dest)
+#
+#
+# # def hour_plot_cli(samples_file: SamplesFile,  # fetch from the deployment.data file
+# #                   metadata_input: Metadata,  # fetch from the deployment.data file
+# #                   codes: Codes=None,
+# #                   multifile: Multifile=False,
+# #                   multiplot: Multiplot=False,
+# #                   colors: ColorMap=None,
+# #                   outfiles: Outfiles=None) -> None:
+# #     codes = codes if codes is None else codes.split(",")  # turn into a list of codes
+# #     if colors is not None:
+# #         colors = colors.split('/')
+# #         if len(colors) == 1 and len(colors[0].split(',')) == 1:
+# #             colors = colors[0]
+# #         else:
+# #             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
+# #     outfiles = outfiles if outfiles is None else outfiles.split(",")
+# #
+# #     hour_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
+# def hour_plot_cli() -> None:
+#     """
+#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
+#
+#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
+#     """
+#     args = initialize_args(['depfile', 'codes', 'validations', 'multifile', 'multiplot', 'colors',
+#                             'dest'])
+#     # TODO: Turn outfiles string into a list of outfiles
+#     # TODO: Turn the codes string into a list of codes
+#     # TODO: Turn the colors string into a list of colors
+#     # TODO: combine the samples and metadata args into the deployment.data file object
+#     # TODO: add the validations argument to the calling method
+#     hour_plot(args.depfile, args.codes, args.validations, args.multifile, args.multiplot, args.colors, args.dest)
+#
+#     codes = codes if codes is None else codes.split(",")  # turn into a list of codes
+#     if colors is not None:
+#         colors = colors.split('/')
+#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
+#             colors = colors[0]
+#         else:
+#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
+#     outfiles = outfiles if outfiles is None else outfiles.split(",")
+#
+#     hour_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
+#
+#
+# def weekday_plot_cli(samples_file: SamplesFile,
+#                   metadata_input: Metadata,
+#                   codes: Codes=None,
+#                   multifile: Multifile=False,
+#                   multiplot: Multiplot=False,
+#                   colors: ColorMap=None,
+#                   outfiles: Outfiles=None) -> None:
+#     """
+#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
+#
+#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
+#     """
+#
+#     codes = codes.split(",") if codes is not None else codes  # turn into a list of codes
+#     if colors is not None:
+#         colors = colors.split('/')
+#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
+#             colors = colors[0]
+#         else:
+#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
+#     outfiles = outfiles.split(",") if outfiles is not None else outfiles
+#     weekday_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
+#
+#
+#
+# def date_plot_cli(samples_file: SamplesFile,
+#                   metadata_input: Metadata,
+#                   codes: Codes=None,
+#                   multifile: Multifile=False,
+#                   multiplot: Multiplot=False,
+#                   colors: ColorMap=None,
+#                   outfiles: Outfiles=None) -> None:
+#     """
+#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
+#
+#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
+#     """
+#
+#     codes = codes.split(",") if codes is not None else codes  # turn into a list of codes
+#     if colors is not None:
+#         colors = colors.split('/')
+#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
+#             colors = colors[0]
+#         else:
+#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
+#     outfiles = outfiles.split(",") if outfiles is not None else outfiles
+#     date_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
+#
+#
+#
+# def week_plot_cli(samples_file: SamplesFile,
+#                   metadata_input: Metadata,
+#                   codes: Codes=None,
+#                   multifile: Multifile=False,
+#                   multiplot: Multiplot=False,
+#                   colors: ColorMap=None,
+#                   outfiles: Outfiles=None) -> None:
+#     """
+#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
+#
+#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
+#     """
+#
+#     codes = codes.split(",") if codes is not None else codes  # turn into a list of codes
+#     if colors is not None:
+#         colors = colors.split('/')
+#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
+#             colors = colors[0]
+#         else:
+#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
+#     outfiles = outfiles.split(",") if outfiles is not None else outfiles
+#     week_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)

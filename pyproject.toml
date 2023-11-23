@@ -52,7 +52,7 @@ hydr-new-depfile = "hydr.cli:new_depfile_cli"
 
 # ADD DATA
 hydr-set-bounds = "hydr.cli:set_bounds_cli"
-hydr-set-coords = "hydr.mapping:add_hydrophone_coords_cli"
+hydr-set-coords = "hydr.cli:set_coords_cli"
 
 # CLASSIFICATION
 hydr-classify-blasts = "hydr.cli:blast_224x224_6cat_cli"
@@ -63,9 +63,10 @@ hydr-run-validator = "hydr.cli:validator_cli"
 # EXPORT SCRIPTS DATA
 hydr-export-summaries = "hydr.cli:export_summaries_cli"
 hydr-export-wavdetails = "hydr.cli:export_wav_details_cli"
-hydr-export-bounds = "hydr.cli:export_bounds_cli"
+hydr-export-map = "hydr.cli:export_map_cli"
 hydr-export-classifications = "hydr.cli:export_classifications_cli"
 hydr-export-validations = "hydr.cli:export_validations_cli"
+
 
 # CSV UTILITIES
 hydr-combine-csvs = "hydr.cli:combine_csvs_cli"
@@ -73,4 +74,4 @@ hydr-fullpaths-csvs = "hydr.cli:file_column_fullpaths_cli"
 hydr-basenames-csvs = "hydr.cli:file_column_basenames_cli"
 
 # MAPPING
-hydr-export-map = "hydr.mapping:map_hydrophones_cli"
+# TODO: Add the multilateration stuff in here

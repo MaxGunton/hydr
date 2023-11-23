@@ -67,6 +67,13 @@ def format_utc_offset(offset):
     return f"{prefix}{offset}".rstrip("0").rstrip("0")
 
 
+def format_coord(coord_s, coord):
+    if coord is None:
+        return None
+    coord = str(round(coord, 10)).rstrip('0')
+    return f"{coord_s} ({coord})"
+
+
 def strformat_dict(layout: OrderedDict) -> str:
     """
     Given the `layout` parameter, this method formats it into a nice human readable
@@ -127,6 +134,8 @@ def format_deployment_summary(data):
                         format_utc_offset(k): v
                         for k, v in data['utc_offset_counts'].items()
                     }),
+                    ("Latitude", format_coord(data['lat_s'], data['lat'])),
+                    ("Longitude", format_coord(data['lon_s'], data['lon'])),
                     ("Gain(s) Used", data['gain_counts']),
                     ("Audio Start", data['audio_start'].strftime('%Y-%m-%d %H:%M:%S')),
                     ("Audio End", data['audio_end'].strftime('%Y-%m-%d %H:%M:%S')),
