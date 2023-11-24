@@ -581,6 +581,8 @@ class Deployment:
     _convention = None
     _hydrophones = None
     _classifications = None
+    _region = None
+    _organization = None
 
     def __init__(self, convention=None):
         self._convention = convention
@@ -592,6 +594,14 @@ class Deployment:
 
     def remove_hydrophone(self, sn: str) -> None:
         self._hydrophones.pop(sn)
+
+    @property
+    def region(self) -> str:
+        return self._region
+
+    @property
+    def organization(self) -> str:
+        return self._organization
 
     @property
     def convention(self) -> str:
@@ -625,6 +635,14 @@ class Deployment:
     def validations(self):
         return self._classifications.get_validations(self.deployment_start,
                                                      self.deployment_end)
+
+    @region.setter
+    def region(self, region):
+        self._region = region
+
+    @organization.setter
+    def organization(self, organization):
+        self._organization = organization
 
     @validations.setter
     def validations(self, validations):

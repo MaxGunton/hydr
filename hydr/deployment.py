@@ -21,7 +21,8 @@ if __name__ == "__main__":
 # from this package
 import hydr.soundtrap as soundtrap  # sn_from_filename, follows_conventions
 from hydr.definitions import (NEW_DEPLOYMENT_STRUCTURE, CONVENTIONS,
-                              WAV_DETAILS_COLUMNS, TQDM_WIDTH)
+                              WAV_DETAILS_COLUMNS, TQDM_WIDTH,
+                              ContainsRestrictedCharacter)
 from hydr.utils import (ok_to_write, existing_directory, valid_filename,
                         save_depfile, load_depfile, unique_items)
 from hydr.types import Deployment, Hydrophone
@@ -122,6 +123,39 @@ def new_depfile(datadir: str, convention: str = 'SoundTrap',
                            f'one of the following: '
                            f'{", ".join([f"`{c}`" for c in CONVENTIONS])}')
     save_depfile(deployment, dest)
+    set_region(dest)
+    set_organization(dest)
+
+
+def set_region(depfile: str):
+    deployment = load_depfile(depfile)
+    region = None
+    while region is None:
+        try:
+            r = input('Enter deployment region (i.e. Hobart): ')
+            region = valid_filename(r)
+        except ContainsRestrictedCharacter:
+            print('Region name uses prohibited characters please restrict name to '
+                  'include only alphanumeric characters')
+    deployment.region = region
+    save_depfile(deployment, depfile, False)
+    print("Region saved ...")
+
+
+def set_organization(depfile: str):
+    deployment = load_depfile(depfile)
+    organization = None
+    while organization is None:
+        try:
+            org = input('Enter organization abbreviation/acronym (ex. `BAS` for British'
+                        ' Antarctic Survey): ')
+            organization = valid_filename(org)
+        except ContainsRestrictedCharacter:
+            print('Abbreviation/acronym uses prohibited characters please restrict to '
+                  'include only alphanumeric characters')
+    deployment.organization = organization
+    save_depfile(deployment, depfile, False)
+    print("Organization saved ...")
 
 
 def set_bounds(depfile: str, sn: str, start: dt.datetime, end: dt.datetime):

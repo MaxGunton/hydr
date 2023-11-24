@@ -10,12 +10,14 @@ if __name__ == "__main__":
 # from this package
 from hydr.utils import (existing_directory, existing_file, existing_parent,
                         existing, valid_filename,  valid_device, load_depfile,
-                        answered_yes, unique_items, save_depfile)
+                        answered_yes, unique_items)
 from hydr.deployment import (new_project, new_depfile, export_summaries,
-                             export_wav_details, set_bounds)
+                             export_wav_details, set_bounds, set_region,
+                             set_organization)
 from hydr.classifications import (blasts_224x224_6cat, export_classifications,
                                   export_validations, file_column_fullpaths,
                                   file_column_basenames, combine_csvs)
+from hydr.plots import hour_plot, weekday_plot, date_plot, week_plot
 from hydr.mapping import set_coords, export_map
 from hydr.definitions import CONVENTIONS
 import hydr.validator.main as validator
@@ -23,27 +25,39 @@ import hydr.validator.main as validator
 
 def initialize_args(argslist) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    if 'name' in argslist:
+    if 'all_samples' in argslist:
         parser.add_argument(
-            "name", help="root name of project directory", type=valid_filename
+            "-a",
+            '--all_samples',
+            help="Use all ML classifications in plot instead of only validated samples",
+            default=False,
+            type=bool,
         )
-    if 'datadir' in argslist:
+    if 'batch_size' in argslist:
         parser.add_argument(
-            "datadir",
-            help="directory containing all hydrophone data (ex. 00_hydrophone_data)",
-            type=existing_directory,
+            "-b",
+            '--batch_size',
+            help="number of samples in batch",
+            default=600,
+            type=int,
         )
-    if 'depfile' in argslist:
+    if 'colors' in argslist:
         parser.add_argument(
-            "depfile",
-            help="deployment data file",
-            type=existing_file,
+            "-c",
+            '--colors',
+            help="color mapping to each sample class. ex. code1,#449594/code2,#FF00FF "
+                 "or single value #FF0000 to apply to all codes",
+            default=None,
+            type=str,
         )
-    if 'wavpath' in argslist:
+    if 'convention' in argslist:
         parser.add_argument(
-            "wavpath",
-            help="individual wav file or directory containing wav files",
-            type=existing,
+            "-c",
+            '--convention',
+            help=f"hydrophone convention used on of: "
+                 f"({', '.join([f'`{c}`' for c in CONVENTIONS])})",
+            default='SoundTrap',
+            choices=CONVENTIONS
         )
     if 'csvdir' in argslist:
         parser.add_argument(
@@ -58,12 +72,17 @@ def initialize_args(argslist) -> argparse.Namespace:
             help="samples file",
             type=existing_file,
         )
-    if 'sns' in argslist:
+    if 'datadir' in argslist:
         parser.add_argument(
-            "-s",
-            "--sns",
-            help="serial numbers of hydrophones comma separated",
-            default=None,
+            "datadir",
+            help="directory containing all hydrophone data (ex. 00_hydrophone_data)",
+            type=existing_directory,
+        )
+    if 'depfile' in argslist:
+        parser.add_argument(
+            "depfile",
+            help="deployment data file",
+            type=existing_file,
         )
     # can only provide one of the following two
     if 'dest' in argslist:
@@ -74,7 +93,7 @@ def initialize_args(argslist) -> argparse.Namespace:
             default=".",
             type=existing_parent,
         )
-    if 'dest_dir' in argslist:
+    if 'destdir' in argslist:
         parser.add_argument(
             "-d",
             "--dest",
@@ -90,25 +109,82 @@ def initialize_args(argslist) -> argparse.Namespace:
             default='cuda:0',
             type=valid_device,
         )
-    if 'batch_size' in argslist:
+    if 'labels' in argslist:
         parser.add_argument(
-            "-b",
-            '--batch_size',
-            help="number of samples in batch",
-            default=600,
-            type=int,
+            "-l",
+            '--labels',
+            help="labels from samples to use in plot (comma separated no spaces)",
+            default=None,
+            type=str,
         )
-    if 'convention' in argslist:
+    if 'multifile' in argslist:
         parser.add_argument(
-            "-c",
-            '--convention',
-            help=f"hydrophone convention used on of: "
-                 f"({', '.join([f'`{c}`' for c in CONVENTIONS])})",
-            default='SoundTrap',
-            choices=CONVENTIONS
+            "-f",
+            '--multifile',
+            help="if set each code is plotted in separate file (overrides multiplot)",
+            default=False,
+            type=bool,
+        )
+    if 'multiplot' in argslist:
+        parser.add_argument(
+            "-m",
+            '--multiplot',
+            help="if set each code plotted separately in single file (overridden by "
+                 "multifile)",
+            default=False,
+            type=bool,
+        )
+    if 'name' in argslist:
+        parser.add_argument(
+            "name",
+            help="root name of project directory",
+            type=valid_filename
+        )
+    if 'sns' in argslist:
+        parser.add_argument(
+            "-s",
+            "--sns",
+            help="serial numbers of hydrophones comma separated",
+            default=None,
+        )
+    if 'wavpath' in argslist:
+        parser.add_argument(
+            "wavpath",
+            help="individual wav file or directory containing wav files",
+            type=existing,
         )
     args = parser.parse_args()
     return args
+
+
+def select_model(depfile):
+    resp = 0
+    deployment = load_depfile(depfile)
+    df = deployment.validations
+    if df.empty:
+        print("No samples for export.  ")
+        return
+    models = unique_items(df['model'])
+    if len(models) > 1:
+        while resp not in [str(i) for i in range(len(models))]:
+            if resp != 0:
+                print(f'\n`{resp}` is an invalid selection.')
+            resp = input(
+                '\nPlease select model for export:\n\t' +
+                '\n\t'.join([f'{str(i).ljust(5)}-> {m}' for i, m in enumerate(models)])
+                + '\n\n\t'
+            )
+    return models[int(resp)]
+
+
+def parse_colors(colors):
+    if colors is not None:
+        colors = colors.split('/')
+        if len(colors) == 1 and len(colors[0].split(',')) == 1:
+            colors = colors[0]
+        else:
+            colors = {cc.split(',')[0]: cc.split(',')[1] for cc in colors}
+    return colors
 
 
 def new_project_cli() -> None:
@@ -122,7 +198,7 @@ def new_project_cli() -> None:
     :return: None
     """
     # get command-line arguments
-    args = initialize_args(['name', 'dest_dir'])
+    args = initialize_args(['name', 'destdir'])
 
     # call the create_new with the command line arguments
     new_project(args.name, args.dest)
@@ -157,7 +233,7 @@ def export_summaries_cli() -> None:
     :return: None
     """
     # get command-line arguments
-    args = initialize_args(['depfile', 'sns', 'dest_dir'])
+    args = initialize_args(['depfile', 'sns', 'destdir'])
     sns = args.sns.split(',') if args.sns is not None else None
 
     # call the export_summaries method with the command-line arguments
@@ -176,11 +252,21 @@ def export_wav_details_cli() -> None:
     :return: None
     """
     # get command-line arguments
-    args = initialize_args(['depfile', 'sns', 'dest_dir'])
+    args = initialize_args(['depfile', 'sns', 'destdir'])
     sns = args.sns.split(',') if args.sns is not None else None
 
     # call the generate_summary method with the command-line arguments
     export_wav_details(args.depfile, sns, args.dest)
+
+
+def set_region_cli() -> None:
+    args = initialize_args(['depfile'])
+    set_region(args.depfile)
+
+
+def set_organization_cli() -> None:
+    args = initialize_args(['depfile'])
+    set_organization(args.depfile)
 
 
 def set_bounds_cli() -> None:
@@ -219,6 +305,7 @@ def set_bounds_cli() -> None:
                     else:
                         break
 
+
 def set_coords_cli():
     # get command-line arguments
     args = initialize_args(['depfile'])
@@ -247,51 +334,19 @@ def blast_224x224_6cat_cli() -> None:
 
 
 def export_classifications_cli() -> None:
-    args = initialize_args(['depfile', 'dest_dir'])
-    resp = 0
-    deployment = load_depfile(args.depfile)
-    df = deployment.validations
-    if df.empty:
-        print("No classifications to export.  ")
-        return
-    models = unique_items(df['model'])
-    if len(models) > 1:
-        while resp not in [str(i) for i in range(len(models))]:
-            if resp != 0:
-                print(f'\n`{resp}` is an invalid selection.')
-            resp = input(
-                '\nPlease select classification set to export:\n\t' +
-                '\n\t'.join([f'{str(i).ljust(5)}-> {m}' for i, m in enumerate(models)])
-                + '\n\n\t'
-            )
-    model = models[int(resp)]
+    args = initialize_args(['depfile', 'destdir'])
+    model = select_model(args.depfile)
     export_classifications(args.depfile, model, args.dest)
 
 
 def export_validations_cli() -> None:
-    args = initialize_args(['depfile', 'dest_dir'])
-    resp = 0
-    deployment = load_depfile(args.depfile)
-    df = deployment.validations
-    if df.empty:
-        print("No validations to export.  ")
-        return
-    models = unique_items(df['model'])
-    if len(models) > 1:
-        while resp not in [str(i) for i in range(len(models))]:
-            if resp != 0:
-                print(f'\n`{resp}` is an invalid selection.')
-            resp = input(
-                '\nPlease select validation set to export:\n\t' +
-                '\n\t'.join([f'{str(i).ljust(5)}-> {m}' for i, m in enumerate(models)])
-                + '\n\n\t'
-            )
-    model = models[int(resp)]
+    args = initialize_args(['depfile', 'destdir'])
+    model = select_model(args.depfile)
     export_validations(args.depfile, model, args.dest)
 
 
 def export_map_cli() -> None:
-    args = initialize_args(['depfile', 'dest_dir'])
+    args = initialize_args(['depfile', 'destdir'])
 
     export_map(args.depfile, args.dest)
 
@@ -336,16 +391,10 @@ def validator_cli() -> None:
     validator.run(args.depfile)
 
 
-
-
-
-
-
-
-
-
-
-
+#  -------------------------------------------------------------------------------------
+#  -------------------------------------------------------------------------------------
+#  -------------------------------------------------------------------------------------
+# TODO: Integrate these methods from mtools
 # # def combine_overlapping_cli(samples_file: SamplesFile,
 # #                             outfile: Outfile=None) -> None:
 # #     combine_overlapping(samples_file, outfile)
@@ -375,121 +424,47 @@ def validator_cli() -> None:
 #     """
 #     args = initialize_args(['csvfile', 'dest'])
 #     multicodes(args.csv, args.dest)
-#
-#
-# # def hour_plot_cli(samples_file: SamplesFile,  # fetch from the deployment.data file
-# #                   metadata_input: Metadata,  # fetch from the deployment.data file
-# #                   codes: Codes=None,
-# #                   multifile: Multifile=False,
-# #                   multiplot: Multiplot=False,
-# #                   colors: ColorMap=None,
-# #                   outfiles: Outfiles=None) -> None:
-# #     codes = codes if codes is None else codes.split(",")  # turn into a list of codes
-# #     if colors is not None:
-# #         colors = colors.split('/')
-# #         if len(colors) == 1 and len(colors[0].split(',')) == 1:
-# #             colors = colors[0]
-# #         else:
-# #             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
-# #     outfiles = outfiles if outfiles is None else outfiles.split(",")
-# #
-# #     hour_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
-# def hour_plot_cli() -> None:
-#     """
-#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
-#
-#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
-#     """
-#     args = initialize_args(['depfile', 'codes', 'validations', 'multifile', 'multiplot', 'colors',
-#                             'dest'])
-#     # TODO: Turn outfiles string into a list of outfiles
-#     # TODO: Turn the codes string into a list of codes
-#     # TODO: Turn the colors string into a list of colors
-#     # TODO: combine the samples and metadata args into the deployment.data file object
-#     # TODO: add the validations argument to the calling method
-#     hour_plot(args.depfile, args.codes, args.validations, args.multifile, args.multiplot, args.colors, args.dest)
-#
-#     codes = codes if codes is None else codes.split(",")  # turn into a list of codes
-#     if colors is not None:
-#         colors = colors.split('/')
-#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
-#             colors = colors[0]
-#         else:
-#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
-#     outfiles = outfiles if outfiles is None else outfiles.split(",")
-#
-#     hour_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
-#
-#
-# def weekday_plot_cli(samples_file: SamplesFile,
-#                   metadata_input: Metadata,
-#                   codes: Codes=None,
-#                   multifile: Multifile=False,
-#                   multiplot: Multiplot=False,
-#                   colors: ColorMap=None,
-#                   outfiles: Outfiles=None) -> None:
-#     """
-#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
-#
-#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
-#     """
-#
-#     codes = codes.split(",") if codes is not None else codes  # turn into a list of codes
-#     if colors is not None:
-#         colors = colors.split('/')
-#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
-#             colors = colors[0]
-#         else:
-#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
-#     outfiles = outfiles.split(",") if outfiles is not None else outfiles
-#     weekday_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
-#
-#
-#
-# def date_plot_cli(samples_file: SamplesFile,
-#                   metadata_input: Metadata,
-#                   codes: Codes=None,
-#                   multifile: Multifile=False,
-#                   multiplot: Multiplot=False,
-#                   colors: ColorMap=None,
-#                   outfiles: Outfiles=None) -> None:
-#     """
-#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
-#
-#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
-#     """
-#
-#     codes = codes.split(",") if codes is not None else codes  # turn into a list of codes
-#     if colors is not None:
-#         colors = colors.split('/')
-#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
-#             colors = colors[0]
-#         else:
-#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
-#     outfiles = outfiles.split(",") if outfiles is not None else outfiles
-#     date_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
-#
-#
-#
-# def week_plot_cli(samples_file: SamplesFile,
-#                   metadata_input: Metadata,
-#                   codes: Codes=None,
-#                   multifile: Multifile=False,
-#                   multiplot: Multiplot=False,
-#                   colors: ColorMap=None,
-#                   outfiles: Outfiles=None) -> None:
-#     """
-#     Wrapper adding commandline parsing to mtools.plots.hour_plot function.
-#
-#     See documentation for [mtools.plots.hour_plot](plots.html#hour_plot) for more details.
-#     """
-#
-#     codes = codes.split(",") if codes is not None else codes  # turn into a list of codes
-#     if colors is not None:
-#         colors = colors.split('/')
-#         if len(colors) == 1 and len(colors[0].split(',')) == 1:
-#             colors = colors[0]
-#         else:
-#             colors = OrderedDict([(cc.split(',')[0], cc.split(',')[1]) for cc in colors])
-#     outfiles = outfiles.split(",") if outfiles is not None else outfiles
-#     week_plot(samples_file, metadata_input, codes, multifile, multiplot, colors, outfiles)
+
+#  -------------------------------------------------------------------------------------
+#  -------------------------------------------------------------------------------------
+#  -------------------------------------------------------------------------------------
+
+
+def hour_plot_cli() -> None:
+    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
+                            'multiplot', 'colors', 'destdir'])
+    model = select_model(args.depfile)
+    labels = None if args.labels is None else args.labels.split(",")  # turn into a list
+    colors = parse_colors(args.colors)
+    hour_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+              args.multiplot, colors, args.dest)
+
+
+def weekday_plot_cli() -> None:
+    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
+                            'multiplot', 'colors', 'destdir'])
+    model = select_model(args.depfile)
+    labels = None if args.labels is None else args.labels.split(",")  # turn into a list
+    colors = parse_colors(args.colors)
+    weekday_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+                 args.multiplot, colors, args.dest)
+
+
+def date_plot_cli() -> None:
+    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
+                            'multiplot', 'colors', 'destdir'])
+    model = select_model(args.depfile)
+    labels = None if args.labels is None else args.labels.split(",")  # turn into a list
+    colors = parse_colors(args.colors)
+    date_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+              args.multiplot, colors, args.dest)
+
+
+def week_plot_cli() -> None:
+    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
+                            'multiplot', 'colors', 'destdir'])
+    model = select_model(args.depfile)
+    labels = None if args.labels is None else args.labels.split(",")  # turn into a list
+    colors = parse_colors(args.colors)
+    week_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+              args.multiplot, colors, args.dest)

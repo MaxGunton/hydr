@@ -2,6 +2,8 @@
 import os
 import sys
 import datetime as dt
+import numpy as np
+from itertools import combinations
 from pickle import load, dump
 
 # if running as script need to add the current directory to the path
@@ -12,6 +14,7 @@ if __name__ == "__main__":
 import hydr as hydrophone  # for backward compatibility when unpickling
 from hydr.definitions import (ContainsRestrictedCharacter, ALLOWED_FILENAME_CHARACTERS,
                               DEVICES)
+
 
 # DECORATOR for classes to make them singleton
 def singleton(class_):
@@ -65,6 +68,38 @@ def secs_to_frames(sec: float, sr: int) -> int:
 
 def unique_items(l):
     return sorted(list(set(l)))
+
+
+def hex_to_rgb(color):
+    """
+    Takes a hex string with leading # and converts it two an rgb tuple with float values
+    between 0.0 and 1.0
+    """
+    return tuple(int(color[1:][i:i+2], 16)/255 for i in (0, 2, 4))
+
+
+def balanced_lines(string, max_chars=100):
+    """
+    Takes a string and takes the existing spaces and balances the lines so that:
+      1) It is split into the minimum number of lines such that no line is > max_chars
+      2) the standard deviation of the len of lines is a minimum
+    """
+    min_breaks = int(np.ceil(len(string) / max_chars)) - 1
+    split_string = string.split()  # may want to only split by spaces (this could mess up formatting)
+    num_possibly_spots = len(split_string) - 1
+    best = None
+    if min_breaks != 0 and num_possibly_spots != 0:
+        for i in combinations(range(1, num_possibly_spots), min_breaks):
+            counts = [sum(len(k) for k in split_string[:i[0]])]
+            for j in range(1, len(i)):
+                counts.append(sum(len(k) for k in split_string[i[j-1]:i[j]]))
+            counts.append(sum(len(k) for k in split_string[i[-1]:]))
+            best = (np.std(counts),i) if best is None else min((np.std(counts), i), best)
+        for idx, val in enumerate(best[1]):
+            split_string = split_string[:val+idx]+['\n']+split_string[val+idx:]
+        string = ' '.join(split_string)
+        string = string.replace(' \n ', '\n')
+    return string
 
 
 def ok_to_write(file: str) -> bool:

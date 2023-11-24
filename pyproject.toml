@@ -36,6 +36,7 @@ PyAudio = "0.2.13"
 PySide6 = "6.4.2"
 python = ">=3.6,<3.11"
 scipy = "1.7.3"
+seaborn = "0.13.0"
 Shapely = "1.8.5.post1"
 simplekml = "1.3.6"
 soundfile = "0.11.0"
@@ -51,6 +52,8 @@ hydr-new-project = "hydr.cli:new_project_cli"
 hydr-new-depfile = "hydr.cli:new_depfile_cli"
 
 # ADD DATA
+hydr-set-region = "hydr.cli:set_region_cli"
+hydr-set-org = "hydr.cli:set_organization_cli"
 hydr-set-bounds = "hydr.cli:set_bounds_cli"
 hydr-set-coords = "hydr.cli:set_coords_cli"
 
@@ -75,3 +78,9 @@ hydr-basenames-csvs = "hydr.cli:file_column_basenames_cli"
 
 # MAPPING
 # TODO: Add the multilateration stuff in here
+
+# PLOTS
+hydr-plot-hour = "hydr.cli:hour_plot_cli"
+hydr-plot-weekday = "hydr.cli:weekday_plot_cli"
+hydr-plot-date = "hydr.cli:date_plot_cli"
+hydr-plot-week = "hydr.cli:week_plot_cli"

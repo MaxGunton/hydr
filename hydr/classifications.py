@@ -80,19 +80,23 @@ def blasts_224x224_6cat(depfile: str, device: str = "cpu",
             print('Save completed.')
 
 
-def export_classifications(depfile: str, model: str, dest='.') -> None:
-    print(f"\nExporting classifications from model `{model}` ...")
-    deployment = load_depfile(depfile)
-    df = deployment.validations
+def export_samples(df, model, dest, validated=False):
     for sn in tqdm(unique_items(df['sn'])):
         df_w = df.loc[np.logical_and(df['model'] == model, df['sn'] == sn), :]
-        outfile = f'{dest}/{sn}_{model}.csv'
+        outfile = (f'{dest}/{sn}_{model}_validations.csv' if validated
+                   else f'{dest}/{sn}_{model}.csv')
         if ok_to_write(outfile):
             df_w.to_csv(outfile, index=False)
 
 
-def export_validations(depfile: str, model: str, dest: str = '.') -> None:
+def export_classifications(depfile: str, model: str, dest='.') -> None:
+    print(f"\nExporting classifications from model `{model}` ...")
     deployment = load_depfile(depfile)
+    df = deployment.validations
+    export_samples(df, model, dest)
+
+
+def extract_validations(deployment):
     validations = deployment.validations
     validations = validations[validations['val_status'] == Status.Submitted]
     cols = ['val_samples', 'file', 'model']
@@ -127,8 +131,8 @@ def export_validations(depfile: str, model: str, dest: str = '.') -> None:
         )
         df['global_end'] = df.apply(
             lambda x: (
-                soundtrap.dt_from_filename(x['file']) +
-                dt.timedelta(seconds=x['end'])
+                    soundtrap.dt_from_filename(x['file']) +
+                    dt.timedelta(seconds=x['end'])
             ).strftime('%Y-%m-%d %H:%M:%S'),
             axis=1
         )
@@ -139,14 +143,14 @@ def export_validations(depfile: str, model: str, dest: str = '.') -> None:
     df['start'] = df['start'].apply(lambda x: '' if pd.isna(x) else '{:.3f}'.format(x))
     df['end'] = df['end'].apply(lambda x: '' if pd.isna(x) else '{:.3f}'.format(x))
     df['peak'] = df['peak'].apply(lambda x: '' if pd.isna(x) else '{:.3f}'.format(x))
-    df = df[['file', 'sn', 'global_start', 'global_end', 'start', 'end', 'peak',
-             'code', 'comment', 'status', 'model']]
+    return df[['file', 'sn', 'global_start', 'global_end', 'start', 'end', 'peak',
+               'code', 'comment', 'status', 'model']]
 
-    for sn in tqdm(unique_items(df['sn'])):
-        df_w = df.loc[np.logical_and(df['model'] == model, df['sn'] == sn), :]
-        outfile = f'{dest}/{sn}_{model}_validations.csv'
-        if ok_to_write(outfile):
-            df_w.to_csv(outfile, index=False)
+
+def export_validations(depfile: str, model: str, dest: str = '.') -> None:
+    deployment = load_depfile(depfile)
+    df = extract_validations(deployment)
+    export_samples(df, model, dest, validated=True)
 
 
 def file_column_fullpaths(datadir, csvdir):
