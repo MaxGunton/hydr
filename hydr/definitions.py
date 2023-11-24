@@ -2,6 +2,8 @@
 import os
 import numpy as np
 from matplotlib import cm as colormap
+import seaborn as sns
+from collections import OrderedDict
 
 # SRC_PATH = os.path.split(os.path.split(os.path.abspath(__file__))[0])[0]
 SRC_PATH = os.path.split(os.path.abspath(__file__))[0]
@@ -37,15 +39,23 @@ BLOCKSIZE = 1024  # 2048  # this is for the wav player through pyaudio
 AUDIO_STEP = 0.9  # seconds that jump when step back or ahead is pressed
 
 BLAST_CLASSES = [
-    'grunt',
-    'background',
+    'animal_noise',
     'blast',
+    'background',
     'bump/scrap',
+    'grumble',
+    'grunt',
     'rumble',
-    'vessel',
     'undetermined',
+    'vessel',
     'other'
 ]
+
+PLOT_COLORS = OrderedDict([
+    (BLAST_CLASSES[i], c)
+    for i, c in enumerate(sns.color_palette("colorblind", len(BLAST_CLASSES)))
+])
+
 DISPLAY_SPEC_PARAMS = dict(
     n_fft=4096,
     win_length=4096,

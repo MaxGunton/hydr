@@ -8,7 +8,6 @@ from collections import OrderedDict
 
 from matplotlib import pyplot as plt
 import matplotlib.colors as mplcolors
-import seaborn as sns
 
 # if running as script need to add the current directory to the path
 if __name__ == "__main__":
@@ -18,6 +17,7 @@ if __name__ == "__main__":
 from hydr.types import Deployment
 from hydr.utils import load_depfile, ok_to_write, hex_to_rgb, balanced_lines
 from hydr.classifications import extract_validations
+from hydr.definitions import PLOT_COLORS
 
 from warnings import warn
 from typing import List
@@ -56,29 +56,23 @@ def load_colors(colors, codes, multifile, multiplot):
     """
     We know that the values are good already. Load the defaults if required and warn if
     """
-    # pigeon hole principle to ensure palette large enough if user provided colors all
-    # match our palette
-    codes.sort()  # sort the codes (for consistency)
-    d_palette = sns.color_palette("colorblind", len(codes)*2)
-    d_colors = OrderedDict([(code, d_palette[idx])for idx, code in enumerate(codes)])
-
-    if colors is None or not colors:  # will also catch empty dictionary
+    if not colors:  # will also catch empty dictionary
         if not multifile and multiplot:
             # all different
-            colors_f = OrderedDict([(code, d_colors[code]) for code in codes])
+            colors_f = PLOT_COLORS
         else:
             # all same
-            colors_f = OrderedDict([(code, d_colors[code]) for code in codes])
+            colors_f = OrderedDict([(code, PLOT_COLORS.values()[0]) for code in codes])
     elif not issubclass(type(colors), dict):
         if type(colors) is str:
             colors = hex_to_rgb(colors)  # convert to rgb
         if not multifile and multiplot and (len(codes) > 1):
             warn("Current configuration has multiplot set and more than one code of "
                  "interest.  However, only one color was provided and therefore all of "
-                 "the codes will share this color.  This is most likely a mistake.  If "
-                 "you don't supply a color then the default action is to assign unique "
-                 "colors for each code.  This will be done automatically for you!  ")
-            colors_f = d_colors
+                 "the codes would share this color.  This is most likely a mistake; "
+                 "therefore unique colors will be assigned to each code automatically "
+                 "for you!  ")
+            colors_f = PLOT_COLORS
         else:
             # all colors get the same value
             colors_f = OrderedDict([(code, colors) for code in codes])
@@ -107,17 +101,18 @@ def load_colors(colors, codes, multifile, multiplot):
                       "continue, but be aware that codes have matching colors and will "
                       "be indistinguishable:\n\n\t{}").format(duplicates))
             # unique colors
-            u_colors = [color for color in d_palette if color not in colors.values()]
+            u_colors = [color for color in PLOT_COLORS.values()
+                        if color not in colors.values()]
             colors_f = OrderedDict(
                 [(code, colors[code]) if code in colors else (code, u_colors.pop(0))
                  for code in codes]
             )
         else:
-            colors_f = OrderedDict(
-                [(code, colors[code]) if code in colors else (code, d_colors[0])
-                 for code in codes]
-            )
-
+            colors_f = OrderedDict([
+                (code, colors[code]) if code in colors
+                else (code, PLOT_COLORS.values()[0])
+                for code in codes
+            ])
     return colors_f
 
 
@@ -128,6 +123,7 @@ def load_plot_params(deployment: Deployment, model: str, sn: str, codes=None,
     df = extract_validations(deployment) if not all_samples else deployment.validations
     df = df.loc[np.logical_and(df['model'] == model, df['sn'] == sn), :]
     df['file'] = df['file'].apply(lambda x: os.path.basename(x))
+    df['code'] = df['code'].apply(lambda x: 'blast' if 'blast' in x else x)
 
     codes = list(set(df['code'])) if codes is None else codes
     colors = load_colors(colors, codes, multifile, multiplot)
@@ -263,6 +259,8 @@ def occurance_plot(plot_params: dict) -> None:
         bar_width = dbw
         bar_color = colors[c]
         bar_sets.append((bar_heights, bar_width, bar_color, ylabel_codes_str))
+        # TODO: Figure out the issue with colors
+        print(f"{ylabel_codes_str}: {bar_color}")
 
         if not multiplot:
             # 4) get the outfile
@@ -307,8 +305,10 @@ def hour_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
         # add bar column to dataset (i.e. bar postion corresponds to the hours of day
         # list above in this case)
         def add_bar_column(row):
-            return (plot_params['metadata'][row['file']]['global_start'] +
-                    dt.timedelta(seconds=row['start'])).hour
+            return (
+                plot_params['metadata'][row['file']]['global_start'] +
+                dt.timedelta(seconds=float(row['start']))
+            ).hour
         plot_params['df'].loc[:, 'bar'] = plot_params['df'].apply(add_bar_column,
                                                                   axis=1)
         occurance_plot(plot_params)
@@ -334,8 +334,10 @@ def weekday_plot(depfile, model, labels, all_samples, multifile, multiplot, colo
         # add bar column to dataset (i.e. bar postion corresponds to the hours of day
         # list above in this case)
         def add_bar_column(row):
-            return (plot_params['metadata'][row['file']]['global_start'] + dt.timedelta(
-                seconds=row['start'])).weekday()
+            return (
+                plot_params['metadata'][row['file']]['global_start'] +
+                dt.timedelta(seconds=float(row['start']))
+            ).weekday()
 
         plot_params['df'].loc[:, 'bar'] = plot_params['df'].apply(add_bar_column,
                                                                   axis=1)
@@ -366,7 +368,7 @@ def date_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
         def add_bar_column(row):
             return dates.index(
                 (plot_params['metadata'][row['file']]['global_start'] +
-                 dt.timedelta(seconds=row['start'])).isoformat().split('T')[0]
+                 dt.timedelta(seconds=float(row['start']))).isoformat().split('T')[0]
             )
         plot_params['df'].loc[:, 'bar'] = plot_params['df'].apply(add_bar_column,
                                                                   axis=1)
@@ -414,7 +416,7 @@ def week_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
         def add_bar_column(row):
             event_time = (
                 plot_params['metadata'][row['file']]['global_start'] +
-                dt.timedelta(seconds=row['start'])
+                dt.timedelta(float(seconds=row['start']))
             )
             for idx in range(len(sow)):
                 if sow[idx] <= event_time <= eow[idx]:

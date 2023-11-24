@@ -32,6 +32,7 @@ def initialize_args(argslist) -> argparse.Namespace:
             help="Use all ML classifications in plot instead of only validated samples",
             default=False,
             type=bool,
+            action=argparse.BooleanOptionalAction,
         )
     if 'batch_size' in argslist:
         parser.add_argument(
@@ -124,6 +125,7 @@ def initialize_args(argslist) -> argparse.Namespace:
             help="if set each code is plotted in separate file (overrides multiplot)",
             default=False,
             type=bool,
+            action=argparse.BooleanOptionalAction,
         )
     if 'multiplot' in argslist:
         parser.add_argument(
@@ -133,6 +135,7 @@ def initialize_args(argslist) -> argparse.Namespace:
                  "multifile)",
             default=False,
             type=bool,
+            action=argparse.BooleanOptionalAction,
         )
     if 'name' in argslist:
         parser.add_argument(
@@ -436,6 +439,16 @@ def hour_plot_cli() -> None:
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
+
+    print(f"depfile: {args.depfile}")
+    print(f"model: {model}")
+    print(f"labels: {labels}")
+    print(f"all_samples: {args.all_samples}")
+    print(f"multifile: {args.multifile}")
+    print(f"multiplot: {args.multiplot}")
+    print(f"colors: {colors}")
+    print(f"dest: {args.dest}")
+
     hour_plot(args.depfile, model, labels, args.all_samples, args.multifile,
               args.multiplot, colors, args.dest)
 
@@ -446,6 +459,16 @@ def weekday_plot_cli() -> None:
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
+
+    print(f"depfile: {args.depfile}")
+    print(f"model: {model}")
+    print(f"labels: {labels}")
+    print(f"all_samples: {args.all_samples}")
+    print(f"multifile: {args.multifile}")
+    print(f"multiplot: {args.multiplot}")
+    print(f"colors: {colors}")
+    print(f"dest: {args.dest}")
+
     weekday_plot(args.depfile, model, labels, args.all_samples, args.multifile,
                  args.multiplot, colors, args.dest)
 
@@ -456,6 +479,16 @@ def date_plot_cli() -> None:
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
+
+    print(f"depfile: {args.depfile}")
+    print(f"model: {model}")
+    print(f"labels: {labels}")
+    print(f"all_samples: {args.all_samples}")
+    print(f"multifile: {args.multifile}")
+    print(f"multiplot: {args.multiplot}")
+    print(f"colors: {colors}")
+    print(f"dest: {args.dest}")
+
     date_plot(args.depfile, model, labels, args.all_samples, args.multifile,
               args.multiplot, colors, args.dest)
 
@@ -466,5 +499,15 @@ def week_plot_cli() -> None:
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
+
+    print(f"depfile: {args.depfile}")
+    print(f"model: {model}")
+    print(f"labels: {labels}")
+    print(f"all_samples: {args.all_samples}")
+    print(f"multifile: {args.multifile}")
+    print(f"multiplot: {args.multiplot}")
+    print(f"colors: {colors}")
+    print(f"dest: {args.dest}")
+
     week_plot(args.depfile, model, labels, args.all_samples, args.multifile,
               args.multiplot, colors, args.dest)
