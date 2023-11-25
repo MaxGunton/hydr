@@ -179,22 +179,17 @@ class ClassificationControls(QFrame, Receiver):
                     else comment
                 )
                 if code is not None:
-                    if code.startswith('blast'):
-                        w.class_btn['blast'].setChecked(True)
-                    elif code == 'rumble':
-                        w.class_btn['rumble'].setChecked(True)
-                    elif code == 'grunt':
-                        w.class_btn['grunt'].setChecked(True)
-                    elif code == 'bump/scrap':
-                        w.class_btn['bump/scrap'].setChecked(True)
-                    elif code == 'vessel':
-                        w.class_btn['vessel'].setChecked(True)
-                    elif code == 'background':
-                        w.class_btn['background'].setChecked(True)
-                    elif code == 'undetermined':
-                        w.class_btn['undetermined'].setChecked(True)
-                    elif code == 'other':
+                    for j in BLAST_CLASSES:
+                        if j == 'blast' and j in code:
+                            w.class_btn['blast'].setChecked(True)
+                            break
+                        if code == j:
+                            w.class_btn[j].setChecked(True)
+                            break
+                    else:
                         w.class_btn['other'].setChecked(True)
+                        if comment is None or comment == '':
+                            w.comment.setText(code)
                 w.sample_index = self.state.index
             else:
                 w.setVisible(False)

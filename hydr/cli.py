@@ -81,8 +81,10 @@ def initialize_args(argslist) -> argparse.Namespace:
         )
     if 'depfile' in argslist:
         parser.add_argument(
-            "depfile",
-            help="deployment data file",
+            "-f",
+            "--depfile",
+            help="deployment data file (defaults `./deployment.data`)",
+            default='deployment.data',
             type=existing_file,
         )
     # can only provide one of the following two
@@ -120,7 +122,7 @@ def initialize_args(argslist) -> argparse.Namespace:
         )
     if 'multifile' in argslist:
         parser.add_argument(
-            "-f",
+            "-M",
             '--multifile',
             help="if set each code is plotted in separate file (overrides multiplot)",
             default=False,
@@ -434,80 +436,88 @@ def validator_cli() -> None:
 
 
 def hour_plot_cli() -> None:
-    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
-                            'multiplot', 'colors', 'destdir'])
+    args = initialize_args(['depfile', 'sns', 'labels', 'model', 'colors', 'multifile',
+                            'multiplot', 'all_samples', 'destdir'])
+    sns = args.sns.split(',') if args.sns is not None else None
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
 
-    print(f"depfile: {args.depfile}")
-    print(f"model: {model}")
-    print(f"labels: {labels}")
     print(f"all_samples: {args.all_samples}")
+    print(f"colors: {colors}")
+    print(f"depfile: {args.depfile}")
+    print(f"dest: {args.dest}")
+    print(f"labels: {labels}")
+    print(f"model: {model}")
     print(f"multifile: {args.multifile}")
     print(f"multiplot: {args.multiplot}")
-    print(f"colors: {colors}")
-    print(f"dest: {args.dest}")
+    print(f"sns: {sns}")
 
-    hour_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+    hour_plot(args.depfile, model, sns, labels, args.all_samples, args.multifile,
               args.multiplot, colors, args.dest)
 
 
 def weekday_plot_cli() -> None:
-    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
-                            'multiplot', 'colors', 'destdir'])
+    args = initialize_args(['depfile', 'sns', 'labels', 'model', 'colors', 'multifile',
+                            'multiplot', 'all_samples', 'destdir'])
+    sns = args.sns.split(',') if args.sns is not None else None
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
 
-    print(f"depfile: {args.depfile}")
-    print(f"model: {model}")
-    print(f"labels: {labels}")
     print(f"all_samples: {args.all_samples}")
+    print(f"colors: {colors}")
+    print(f"depfile: {args.depfile}")
+    print(f"dest: {args.dest}")
+    print(f"labels: {labels}")
+    print(f"model: {model}")
     print(f"multifile: {args.multifile}")
     print(f"multiplot: {args.multiplot}")
-    print(f"colors: {colors}")
-    print(f"dest: {args.dest}")
+    print(f"sns: {sns}")
 
-    weekday_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+    weekday_plot(args.depfile, model, sns, labels, args.all_samples, args.multifile,
                  args.multiplot, colors, args.dest)
 
 
 def date_plot_cli() -> None:
-    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
-                            'multiplot', 'colors', 'destdir'])
+    args = initialize_args(['depfile', 'sns', 'labels', 'model', 'colors', 'multifile',
+                            'multiplot', 'all_samples', 'destdir'])
+    sns = args.sns.split(',') if args.sns is not None else None
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
 
-    print(f"depfile: {args.depfile}")
-    print(f"model: {model}")
-    print(f"labels: {labels}")
     print(f"all_samples: {args.all_samples}")
+    print(f"colors: {colors}")
+    print(f"depfile: {args.depfile}")
+    print(f"dest: {args.dest}")
+    print(f"labels: {labels}")
+    print(f"model: {model}")
     print(f"multifile: {args.multifile}")
     print(f"multiplot: {args.multiplot}")
-    print(f"colors: {colors}")
-    print(f"dest: {args.dest}")
+    print(f"sns: {sns}")
 
-    date_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+    date_plot(args.depfile, model, sns, labels, args.all_samples, args.multifile,
               args.multiplot, colors, args.dest)
 
 
 def week_plot_cli() -> None:
-    args = initialize_args(['depfile', 'labels', 'model', 'all_samples', 'multifile',
-                            'multiplot', 'colors', 'destdir'])
+    args = initialize_args(['depfile', 'sns', 'labels', 'model', 'colors', 'multifile',
+                            'multiplot', 'all_samples', 'destdir'])
+    sns = args.sns.split(',') if args.sns is not None else None
     model = select_model(args.depfile)
     labels = None if args.labels is None else args.labels.split(",")  # turn into a list
     colors = parse_colors(args.colors)
 
-    print(f"depfile: {args.depfile}")
-    print(f"model: {model}")
-    print(f"labels: {labels}")
     print(f"all_samples: {args.all_samples}")
+    print(f"colors: {colors}")
+    print(f"depfile: {args.depfile}")
+    print(f"dest: {args.dest}")
+    print(f"labels: {labels}")
+    print(f"model: {model}")
     print(f"multifile: {args.multifile}")
     print(f"multiplot: {args.multiplot}")
-    print(f"colors: {colors}")
-    print(f"dest: {args.dest}")
+    print(f"sns: {sns}")
 
-    week_plot(args.depfile, model, labels, args.all_samples, args.multifile,
+    week_plot(args.depfile, model, sns, labels, args.all_samples, args.multifile,
               args.multiplot, colors, args.dest)

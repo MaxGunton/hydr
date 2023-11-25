@@ -51,10 +51,10 @@ BLAST_CLASSES = [
     'other'
 ]
 
-PLOT_COLORS = OrderedDict([
-    (BLAST_CLASSES[i], c)
+PLOT_COLORS = {
+    BLAST_CLASSES[i]: c
     for i, c in enumerate(sns.color_palette("colorblind", len(BLAST_CLASSES)))
-])
+}
 
 DISPLAY_SPEC_PARAMS = dict(
     n_fft=4096,

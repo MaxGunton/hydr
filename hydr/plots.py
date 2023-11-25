@@ -17,7 +17,7 @@ if __name__ == "__main__":
 from hydr.types import Deployment
 from hydr.utils import load_depfile, ok_to_write, hex_to_rgb, balanced_lines
 from hydr.classifications import extract_validations
-from hydr.definitions import PLOT_COLORS
+from hydr.definitions import PLOT_COLORS, BLAST_CLASSES
 
 from warnings import warn
 from typing import List
@@ -57,12 +57,13 @@ def load_colors(colors, codes, multifile, multiplot):
     We know that the values are good already. Load the defaults if required and warn if
     """
     if not colors:  # will also catch empty dictionary
-        if not multifile and multiplot:
-            # all different
-            colors_f = PLOT_COLORS
-        else:
-            # all same
-            colors_f = OrderedDict([(code, PLOT_COLORS.values()[0]) for code in codes])
+        colors_f = PLOT_COLORS
+        # if not multifile and multiplot:
+        #     # all different
+        #     colors_f = PLOT_COLORS
+        # else:
+        #     # all same
+        #     colors_f = OrderedDict([(code, list(PLOT_COLORS.values())[0]) for code in codes])
     elif not issubclass(type(colors), dict):
         if type(colors) is str:
             colors = hex_to_rgb(colors)  # convert to rgb
@@ -110,7 +111,7 @@ def load_colors(colors, codes, multifile, multiplot):
         else:
             colors_f = OrderedDict([
                 (code, colors[code]) if code in colors
-                else (code, PLOT_COLORS.values()[0])
+                else (code, list(PLOT_COLORS.values())[0])
                 for code in codes
             ])
     return colors_f
@@ -126,6 +127,7 @@ def load_plot_params(deployment: Deployment, model: str, sn: str, codes=None,
     df['code'] = df['code'].apply(lambda x: 'blast' if 'blast' in x else x)
 
     codes = list(set(df['code'])) if codes is None else codes
+    codes = sorted(codes)
     colors = load_colors(colors, codes, multifile, multiplot)
 
     hydrophone = deployment.hydrophones[sn]
@@ -213,6 +215,7 @@ def write_bar_graph(title: str, bar_labels: pd.DataFrame, bar_sets: list, outfil
             ax.text(bar_labels.iloc[x, :]['x_pos'], y+offset, str(y), rotation=90,
                     color=label_color, va='center', ha='center', fontweight='bold')
     if len(bars) > 1:  # if multiplot then create a legend
+        # print([codes_str for _, _, _, codes_str in bar_sets])
         ax.legend(bars, [codes_str for _, _, _, codes_str in bar_sets])
 
     if ok_to_write(outfile):
@@ -243,7 +246,7 @@ def occurance_plot(plot_params: dict) -> None:
 
     bar_sets = []
     title = ''
-    for idx, c in enumerate(codes):
+    for idx, c in enumerate(sorted(codes)):
         df_rel = (df.loc[df['code'] == c, :] if multifile or multiplot
                   else df.loc[df['code'].isin(codes), :])
         title_codes_str = codes_str[idx] if multifile else all_codes_str
@@ -257,10 +260,8 @@ def occurance_plot(plot_params: dict) -> None:
         bar_heights = [df_rel[df_rel['bar'] == row['x_pos']].shape[0]
                        for i, row in bar_labels.iterrows()]
         bar_width = dbw
-        bar_color = colors[c]
+        bar_color = colors[c] if multifile or multiplot else colors[BLAST_CLASSES[0]]
         bar_sets.append((bar_heights, bar_width, bar_color, ylabel_codes_str))
-        # TODO: Figure out the issue with colors
-        print(f"{ylabel_codes_str}: {bar_color}")
 
         if not multiplot:
             # 4) get the outfile
@@ -275,20 +276,26 @@ def occurance_plot(plot_params: dict) -> None:
         dw = (mbw-sbw) / len(codes)
         bar_sets.sort(key=lambda x: sum(x[0]), reverse=True)
         bar_sets = [(b[0], 0.9-dw*idx, b[2], b[3]) for idx, b in enumerate(bar_sets)]
+        bar_sets.sort(key=lambda x: x[3])
         write_bar_graph(title, bar_labels.copy(deep=True), bar_sets, outfiles[0],
                         xlabel=xlabel)
     return
 
 
-def hour_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
+def hour_plot(depfile, model, sns, labels, all_samples, multifile, multiplot, colors,
               dest) -> None:
     hours = [u'12:00am', u'1:00am', u'2:00am', u'3:00am', u'4:00am', u'5:00am',
              u'6:00am', u'7:00am', u'8:00am', u'9:00am', u'10:00am', u'11:00am',
              u'12:00pm', u'1:00pm', u'2:00pm', u'3:00pm', u'4:00pm', u'5:00pm',
              u'6:00pm', u'7:00pm', u'8:00pm', u'9:00pm', u'10:00pm', u'11:00pm']
     deployment = load_depfile(depfile)
-    df = deployment.validations
-    for sn in tqdm(df['sn'].unique()):
+    all_sns = sorted([i.sn for i in deployment.hydrophones.values()])
+    sns = all_sns if sns is None else sns
+    if not set(sns).issubset(all_sns):
+        unknown_sns = set(sns).difference(all_sns)
+        warn(f"\nIgnoring unknown serial number(s): {unknown_sns}.  \n")
+        sns = sorted(list(set(sns).difference(unknown_sns)))
+    for sn in tqdm(sns):
         plot_params = load_plot_params(
             deployment, model, sn, labels, colors, all_samples, multifile,
             multiplot, dest, 'events_per_hour'
@@ -314,13 +321,18 @@ def hour_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
         occurance_plot(plot_params)
 
 
-def weekday_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
+def weekday_plot(depfile, model, sns, labels, all_samples, multifile, multiplot, colors,
                  dest) -> None:
     weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
                 'Sunday']
     deployment = load_depfile(depfile)
-    df = deployment.validations
-    for sn in tqdm(df['sn'].unique()):
+    all_sns = sorted([i.sn for i in deployment.hydrophones.values()])
+    sns = all_sns if sns is None else sns
+    if not set(sns).issubset(all_sns):
+        unknown_sns = set(sns).difference(all_sns)
+        warn(f"\nIgnoring unknown serial number(s): {unknown_sns}.  \n")
+        sns = sorted(list(set(sns).difference(unknown_sns)))
+    for sn in tqdm(sns):
         plot_params = load_plot_params(
             deployment, model, sn, labels, colors, all_samples, multifile,
             multiplot, dest, 'events_per_weekday'
@@ -344,11 +356,16 @@ def weekday_plot(depfile, model, labels, all_samples, multifile, multiplot, colo
         occurance_plot(plot_params)
 
 
-def date_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
+def date_plot(depfile, model, sns, labels, all_samples, multifile, multiplot, colors,
               dest) -> None:
     deployment = load_depfile(depfile)
-    df = deployment.validations
-    for sn in tqdm(df['sn'].unique()):
+    all_sns = sorted([i.sn for i in deployment.hydrophones.values()])
+    sns = all_sns if sns is None else sns
+    if not set(sns).issubset(all_sns):
+        unknown_sns = set(sns).difference(all_sns)
+        warn(f"\nIgnoring unknown serial number(s): {unknown_sns}.  \n")
+        sns = sorted(list(set(sns).difference(unknown_sns)))
+    for sn in tqdm(sns):
         plot_params = load_plot_params(
             deployment, model, sn, labels, colors, all_samples, multifile,
             multiplot, dest, 'events_per_date'
@@ -375,11 +392,16 @@ def date_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
         occurance_plot(plot_params)
 
 
-def week_plot(depfile, model, labels, all_samples, multifile, multiplot, colors,
+def week_plot(depfile, model, sns, labels, all_samples, multifile, multiplot, colors,
               dest) -> None:
     deployment = load_depfile(depfile)
-    df = deployment.validations
-    for sn in tqdm(df['sn'].unique()):
+    all_sns = sorted([i.sn for i in deployment.hydrophones.values()])
+    sns = all_sns if sns is None else sns
+    if not set(sns).issubset(all_sns):
+        unknown_sns = set(sns).difference(all_sns)
+        warn(f"\nIgnoring unknown serial number(s): {unknown_sns}.  \n")
+        sns = sorted(list(set(sns).difference(unknown_sns)))
+    for sn in tqdm(sns):
         plot_params = load_plot_params(
             deployment, model, sn, labels, colors, all_samples, multifile,
             multiplot, dest, 'events_per_date'
